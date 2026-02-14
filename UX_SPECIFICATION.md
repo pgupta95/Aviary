@@ -968,12 +968,899 @@ const handlePlay = async () => {
 
 ## Next Steps
 
-With Landing and Species pages defined, next document will cover:
-- **Explore / Birds Around You flow**
-- Location detection and filtering
-- Browse by habitat/family
-- Regional discovery pages
-- Time-based filtering
+With Landing and Species pages defined, this document continues with:
+- **[Explore / Birds Around You Page](#explore-page)**
+- **[About Page](#about-page)**
+
+---
+
+## Explore Page
+
+### Purpose
+**Primary Goal:** Help users discover birds in their location right now (or any location/time).
+
+**Core Question Answered:** "What birds can I see here this month?"
+
+**Secondary Goals:**
+- Enable temporal exploration (what's here in other months?)
+- Support spatial exploration (what's in other regions?)
+- Filter by habitat for focused discovery
+
+### User Entry Points
+
+**From Landing Page:**
+- Click "Birds Around You" button
+- Auto-detects location OR prompts for manual entry
+- Defaults to current month
+
+**From Species Page:**
+- Click "See more birds near you" CTA
+- Inherits user's location (if already set)
+- Defaults to current month
+- **No habitat pre-filtering** - shows all birds in area
+
+**From Direct URL:**
+- `/explore` with optional params
+- Restores previous state if returning via back button
+
+### Information Architecture
+
+```
+1. Location & Controls
+   ├─ Location input (auto-detect or manual)
+   ├─ Compact map (context + density visualization)
+   ├─ Time slider (month selection)
+   └─ Radius control (search area)
+
+2. Filtering & Display Options
+   ├─ Habitat filter (optional chips)
+   ├─ View toggle (Grid/List)
+   └─ Sort dropdown
+
+3. Results
+   ├─ Bird count header
+   ├─ Grid or List of birds (adaptive default)
+   └─ Pagination (load more or infinite scroll)
+```
+
+### Detailed Layout (Mobile)
+
+#### 1. Header & Location
+
+```
+┌──────────────────────────────────┐
+│ Birds Around You            [≡]  │ ← Page header
+├──────────────────────────────────┤
+│                                  │
+│ ┌──────────────────────────┐     │ ← Location input
+│ │ 📍 Santa Barbara, CA  [✕]│     │   - Auto-detected on first load
+│ └──────────────────────────┘     │   - Or manual entry with autocomplete
+│                                  │   - Clear (✕) to change location
+│                                  │
+└──────────────────────────────────┘
+
+CSS:
+.location-input {
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.1rem;
+  padding: 1rem 1.5rem;
+  border: 2px solid #8B7355;
+  border-radius: 8px;
+  background: white;
+  color: #1A2F23;
+}
+
+.location-input::placeholder {
+  color: #8B7355;
+  opacity: 0.7;
+}
+```
+
+**Location Detection Logic:**
+```javascript
+async function detectLocation() {
+  try {
+    // Try browser geolocation first
+    const position = await getCurrentPosition();
+    const location = await reverseGeocode(
+      position.coords.latitude, 
+      position.coords.longitude
+    );
+    return location; // "Santa Barbara, CA"
+  } catch (error) {
+    // Permission denied or not available
+    // Show manual entry prompt
+    return null;
+  }
+}
+```
+
+**Manual Entry:**
+- Uses Google Places Autocomplete (or similar)
+- Suggests cities, regions, landmarks
+- Handles "Santa Barbara", "Santa Barbara CA", "93101"
+- Biases results to user's general region
+
+**Empty State (Location Not Detected):**
+```
+┌──────────────────────────────────┐
+│ Birds Around You                 │
+│                                  │
+│ 👇 Where are you birding?        │
+│                                  │
+│ ┌──────────────────────────┐     │
+│ │ Enter city or region...  │     │
+│ └──────────────────────────┘     │
+│                                  │
+│ Or tap map to select location    │
+│                                  │
+│ Popular regions:                 │
+│ [California] [Texas] [Florida]   │
+│                                  │
+└──────────────────────────────────┘
+```
+
+---
+
+#### 2. Map & Context
+
+```
+┌──────────────────────────────────┐
+│ ┌────────────┐  47 birds         │ ← Compact map (1/3 width)
+│ │    Map     │  in February      │   Shows selected region
+│ │            │                   │   Color intensity = density
+│ │     ◉      │  [Expand full ⤢]  │   Darker = more species
+│ │            │                   │
+│ └────────────┘                   │
+│                                  │
+│ Legend: Darker = More species    │ ← Simple legend
+└──────────────────────────────────┘
+
+CSS:
+.map-container {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.map-widget {
+  aspect-ratio: 1;
+  border: 2px solid #8B7355;
+  border-radius: 4px;
+  position: relative;
+}
+
+.bird-count {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1A2F23;
+}
+```
+
+**Map Behavior:**
+- Shows user's selected region (zoomed appropriately)
+- User location marked with ◉
+- Radius circle shown (subtle outline)
+- Color gradient overlay:
+  - Light green: 1-20 species
+  - Medium green: 21-50 species
+  - Dark green: 51+ species
+- Pan/zoom enabled
+- Tap "Expand full ⤢" → Full-screen map view
+
+**Full-Screen Map (Expanded):**
+```
+┌──────────────────────────────────┐
+│ ← Back to results                │
+├──────────────────────────────────┤
+│                                  │
+│                                  │
+│        [Full Screen Map]         │ ← Interactive
+│                                  │   Pan anywhere
+│              ◉                   │   Zoom in/out
+│         You are here             │
+│                                  │
+│     Tap any region to            │
+│     explore birds there          │
+│                                  │
+│                                  │
+└──────────────────────────────────┘
+      Jan ━━━●━━━━━━━━━━━━ Dec     ← Time slider (sticky)
+```
+
+**When user taps different region:**
+```
+┌─────────────────────────┐
+│ Northern California     │ ← Modal overlay
+│ 83 birds in February    │
+│                         │
+│ Top 3:                  │
+│ • American Robin        │
+│ • Dark-eyed Junco       │
+│ • Red-tailed Hawk       │
+│                         │
+│ [Switch to this region] │
+│              [Cancel]   │
+└─────────────────────────┘
+```
+
+---
+
+#### 3. Time & Radius Controls
+
+```
+┌──────────────────────────────────┐
+│ February ──────────────────       │ ← Time slider
+│ Jan ━━━●━━━━━━━━━━━━━━━━━ Dec   │   Defaults to current month
+│                                  │   Sticky on scroll
+│                                  │
+│ Within: [50 miles ▾]             │ ← Radius dropdown
+│                                  │   Smart default based on
+│                                  │   population density
+└──────────────────────────────────┘
+
+CSS:
+/* Make time controls sticky on scroll */
+.time-controls {
+  position: sticky;
+  top: 0;
+  background: #FAF7F0;
+  padding: 1rem 1.5rem;
+  z-index: 10;
+  border-bottom: 1px solid rgba(139, 115, 85, 0.2);
+}
+
+/* On scroll down, add subtle shadow */
+.time-controls.scrolled {
+  box-shadow: 0 2px 8px rgba(26, 47, 35, 0.08);
+}
+```
+
+**Time Slider:**
+- Identical to Species page implementation
+- 12 stops (one per month)
+- Current month highlighted
+- Updates results dynamically (with brief loading state)
+- Label shows full month name
+
+**Radius Control:**
+```
+Within: [50 miles ▾]
+   ↓ Click
+┌──────────────────┐
+│ 10 miles         │
+│ 25 miles         │
+│ 50 miles      ✓  │
+│ 100 miles        │
+│ 200 miles        │
+└──────────────────┘
+```
+
+**Smart Defaults:**
+```javascript
+function getDefaultRadius(location) {
+  const density = getPopulationDensity(location);
+  
+  if (density > 5000) return 10;   // Dense urban
+  if (density > 1000) return 25;   // Urban/suburban
+  if (density > 100) return 50;    // Suburban/rural
+  if (density > 10) return 100;    // Rural
+  return 200;                      // Remote/wilderness
+}
+```
+
+---
+
+#### 4. Filtering & Display Options
+
+```
+┌──────────────────────────────────┐
+│ Filter by habitat:               │ ← Optional filter
+│ ○ All  ○ Beach  ○ Forest         │   Chip-style toggles
+│ ○ Grassland  ○ Urban  ○ Wetland  │   Not pre-selected
+│                                  │
+│ 47 birds • February 2026         │ ← Results header
+│ [Grid ●] [List ○]                │   View toggle
+│ Sort: [Most common ▾]            │   Sort dropdown
+└──────────────────────────────────┘
+
+CSS:
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: rgba(45, 74, 62, 0.03);
+}
+
+.filter-chip {
+  padding: 0.5rem 1rem;
+  border: 2px solid #8B7355;
+  border-radius: 20px;
+  background: white;
+  font-family: 'Crimson Pro', serif;
+  font-size: 0.95rem;
+  color: #2D4A3E;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-chip.active {
+  background: #2D4A3E;
+  color: white;
+  border-color: #2D4A3E;
+}
+```
+
+**Habitat Options:**
+- All (default - no filter)
+- Beach / Coastal
+- Forest / Woodland
+- Grassland / Prairie
+- Urban / Suburban
+- Wetland / Marsh
+
+**Sort Options:**
+```
+Sort by: [Most common ▾]
+   ↓
+┌────────────────────┐
+│ Most common     ✓  │ ← Default (uses eBird frequency data)
+│ Alphabetical       │
+│ Size (largest)     │
+│ Size (smallest)    │
+└────────────────────┘
+```
+
+---
+
+#### 5. Results Display
+
+**Adaptive Default:**
+```javascript
+// Auto-select view based on result count
+const defaultView = birdCount < 30 ? 'grid' : 'list';
+```
+
+**Grid View (< 30 birds or user preference):**
+```
+┌──────────────────────────────────┐
+│ ┌─────────┐ ┌─────────┐ ┌───────┐│
+│ │  [img]  │ │  [img]  │ │ [img] ││ ← 3 columns on mobile
+│ │         │ │         │ │       ││   2 columns on narrow
+│ │ American│ │  Blue   │ │Western││   4-5 on tablet/desktop
+│ │  Robin  │ │   Jay   │ │ Gull  ││
+│ └─────────┘ └─────────┘ └───────┘│
+│                                  │
+│ ┌─────────┐ ┌─────────┐ ┌───────┐│
+│ │  [img]  │ │  [img]  │ │ [img] ││
+│ │ Common  │ │ Song    │ │Downy  ││
+│ │Yellowth.│ │Sparrow  │ │Woodp. ││
+│ └─────────┘ └─────────┘ └───────┘│
+│                                  │
+└──────────────────────────────────┘
+
+Interaction:
+- Tap card → Species page (direct navigation)
+- Gentle lift on tap (4px elevation)
+- Image lazy-loaded as scrolled into view
+```
+
+**List View (30+ birds or user preference):**
+```
+┌──────────────────────────────────┐
+│ ┌────┐                           │
+│ │img │ American Robin            │ ← Compact row (collapsed)
+│ └────┘ Common year-round         │   Tap to expand
+│ ──────────────────────────────    │
+│                                  │
+│ ┌────┐                           │
+│ │img │ Blue Jay                  │
+│ └────┘ Common resident           │
+│ ──────────────────────────────    │
+│                                  │
+│ ┌──────────────────────────────┐ │
+│ │ [Larger illustration]        │ │ ← Expanded state
+│ │                              │ │   Shows preview
+│ │ Western Gull                 │ │
+│ │                              │ │
+│ │ Large gray-backed gull       │ │ ← 1-2 sentence teaser
+│ │ common along Pacific coast.  │ │
+│ │                              │ │
+│ │ • Abundant coastal resident  │ │ ← Quick facts (2-3)
+│ │ • Often seen at beaches      │ │
+│ │ • Size: 22-26 inches         │ │
+│ │                              │ │
+│ │ [See full page →]            │ │ ← CTA to species page
+│ └──────────────────────────────┘ │
+│                                  │
+│ ┌────┐                           │
+│ │img │ Sanderling                │
+│ └────┘ Winter visitor            │
+│ ──────────────────────────────    │
+└──────────────────────────────────┘
+
+Interaction:
+- Tap collapsed row → Expands inline
+- Tap "See full page" → Species page
+- Tap elsewhere → Collapse current, expand new
+- Only one expanded at a time
+```
+
+**Pagination:**
+```
+Load first 30 birds initially
+
+Then either:
+
+Option A (Explicit):
+┌──────────────────┐
+│  [Load more →]   │ ← Button to load next 30
+└──────────────────┘
+
+Option B (Infinite scroll):
+- Automatically load next 30 as user approaches bottom
+- Show subtle loading indicator
+- Continue until all results shown
+```
+
+**My recommendation:** Option A (explicit button) for first version. Less ambiguous, gives user control.
+
+---
+
+### State Management
+
+**URL Parameters:**
+Preserve state for back navigation and shareability:
+
+```
+/explore?location=santa-barbara-ca&lat=34.4208&lng=-119.6982&month=2&radius=50&habitat=beach&view=list&sort=common
+
+Parameters:
+- location: URL-safe location name
+- lat, lng: Coordinates (for precise location)
+- month: 1-12
+- radius: 10, 25, 50, 100, 200
+- habitat: all, beach, forest, grassland, urban, wetland
+- view: grid, list
+- sort: common, alpha, size-large, size-small
+```
+
+**State Restoration:**
+```javascript
+// On page load
+const params = new URLSearchParams(window.location.search);
+const state = {
+  location: params.get('location') || await detectLocation(),
+  month: parseInt(params.get('month')) || getCurrentMonth(),
+  radius: parseInt(params.get('radius')) || getDefaultRadius(),
+  habitat: params.get('habitat') || 'all',
+  view: params.get('view') || getAdaptiveView(),
+  sort: params.get('sort') || 'common'
+};
+
+// Update URL when state changes (without page reload)
+function updateURL(newState) {
+  const params = new URLSearchParams(newState);
+  window.history.replaceState({}, '', `/explore?${params}`);
+}
+```
+
+**Benefits:**
+- ✅ Back button works (returns to exact state)
+- ✅ URLs are shareable ("Check out birds near me!")
+- ✅ Refresh preserves selections
+- ✅ Deep linking supported
+
+---
+
+### Error States
+
+**No Results:**
+```
+┌──────────────────────────────────┐
+│ No birds found                   │
+│                                  │
+│ This combination of filters      │
+│ didn't match any birds.          │
+│                                  │
+│ Try:                             │
+│ • Expanding your radius          │
+│ • Adjusting the month            │
+│ • Removing habitat filter        │
+│                                  │
+│ [Show all birds in California →] │
+└──────────────────────────────────┘
+```
+
+**Location Not Found:**
+```
+┌──────────────────────────────────┐
+│ Location not recognized          │
+│                                  │
+│ Please try:                      │
+│ • A nearby city name             │
+│ • State or region                │
+│ • ZIP code                       │
+│                                  │
+│ Or tap map to select location    │
+└──────────────────────────────────┘
+```
+
+**Network Error:**
+```
+┌──────────────────────────────────┐
+│ Unable to load bird data         │
+│                                  │
+│ Please check your connection     │
+│ and try again.                   │
+│                                  │
+│ [Retry]                          │
+└──────────────────────────────────┘
+```
+
+---
+
+### Performance Optimizations
+
+**Initial Load:**
+- Detect location in background while showing UI skeleton
+- Load first 30 birds immediately
+- Lazy load images as they scroll into view
+- Defer map initialization until visible
+
+**Filtering/Sorting:**
+```javascript
+// Debounce filter changes to avoid excessive re-renders
+const debouncedFilter = useDe bounce((filters) => {
+  updateResults(filters);
+}, 300);
+
+// Optimistic UI - show loading state, update immediately
+function handleFilterChange(newFilter) {
+  setLoading(true);
+  debouncedFilter(newFilter);
+}
+```
+
+**Virtual Scrolling:**
+If list exceeds 200 birds, implement virtual scrolling:
+- Only render visible items + buffer
+- Dramatically improves scroll performance
+- Use `react-window` or `react-virtualized`
+
+---
+
+## About Page
+
+### Purpose
+Share the story, mission, and community behind Aviary.
+
+**Goals:**
+- Explain what Aviary is and why it exists
+- Connect with users who share the love of birds
+- Invite community participation and feedback
+- Build emotional connection through personal storytelling
+
+### Structure
+
+```
+1. Hero / Opening
+2. What This Is
+3. Why It Exists
+4. How It Works
+5. Community Section
+   └─ Comments / Stories
+```
+
+### Layout (Mobile)
+
+```
+┌──────────────────────────────────┐
+│ ← Back                      [≡]  │
+├──────────────────────────────────┤
+│                                  │
+│     [Beautiful illustration]     │ ← Hero image
+│     (Bird in flight or           │   Full viewport
+│      nature scene)               │   Sets the tone
+│                                  │
+│                                  │
+│ About Aviary                     │ ← Title (left-bottom)
+│                                  │   Like species page
+└──────────────────────────────────┘
+              ↓ Scroll
+┌──────────────────────────────────┐
+│ What This Is                     │ ← Section 1
+│                                  │
+│ Aviary is a free, illustrated   │   2-3 paragraphs
+│ field guide to all 11,000+      │   Warm, personal
+│ bird species on Earth. It       │   First person OK
+│ combines the beauty of vintage  │
+│ Audubon prints with modern      │
+│ web technology to help you      │
+│ discover, identify, and learn   │
+│ about birds anywhere in the     │
+│ world.                          │
+│                                  │
+│ Whether you're trying to        │
+│ identify a bird in your         │
+│ backyard, planning a birding    │
+│ trip, or just curious about     │
+│ the incredible journeys birds   │
+│ undertake each year, this site  │
+│ is here to help.                │
+│                                  │
+└──────────────────────────────────┘
+              ↓
+┌──────────────────────────────────┐
+│ Why It Exists                    │ ← Section 2
+│                                  │
+│ [Your personal story here]       │   3-4 paragraphs
+│                                  │   Authentic voice
+│ This started as a personal      │   Why you care
+│ project born from [your story]. │   What inspired you
+│                                  │
+│ I wanted to build something     │   The vision:
+│ that:                           │   - Free forever
+│ • Is always free, with no ads   │   - Beautiful
+│ • Respects your time and        │   - Educational
+│   attention                     │   - Gift to community
+│ • Celebrates the beauty of      │
+│   birds and nature              │
+│ • Makes birding accessible      │
+│   to everyone                   │
+│                                  │
+│ The internet has too many       │
+│ things designed to capture      │
+│ your attention. This is         │
+│ designed to give you something  │
+│ beautiful, then let you go      │
+│ enjoy the birds themselves.     │
+│                                  │
+└──────────────────────────────────┘
+              ↓
+┌──────────────────────────────────┐
+│ How It Works                     │ ← Section 3
+│                                  │
+│ All 11,000+ species have:       │   Technical overview
+│ • AI-generated illustrations    │   (friendly language)
+│   in Audubon's style            │
+│ • Migration maps and seasonal   │
+│   data from eBird               │
+│ • Bird calls from Xeno-canto   │
+│                                  │
+│ Priority species also get:      │
+│ • Hand-written naturalist       │
+│   descriptions                  │
+│ • Detailed migration stories    │
+│ • Multiple plumage variations   │
+│                                  │
+│ Everything is built on public   │
+│ data and open-source tools.     │
+│ The illustrations are           │
+│ AI-generated but manually       │
+│ curated. The descriptions for   │
+│ enhanced species are written    │
+│ by hand.                        │
+│                                  │
+│ This is a work in progress,     │
+│ growing slowly and carefully.   │
+│                                  │
+└──────────────────────────────────┘
+              ↓
+┌──────────────────────────────────┐
+│ Support This Project             │ ← Optional section
+│                                  │
+│ Aviary costs about $3/month     │   Transparent costs
+│ to run. If you find it useful,  │   + donation option
+│ you can:                        │
+│                                  │
+│ [Buy me a coffee →]             │   Ko-fi / BMAC button
+│                                  │
+│ Or donate to bird conservation: │
+│ • Audubon Society               │
+│ • Cornell Lab of Ornithology    │
+│ • [Local conservation org]      │
+│                                  │
+└──────────────────────────────────┘
+              ↓
+┌──────────────────────────────────┐
+│ Share Your Story                 │ ← Community section
+│                                  │
+│ What got you into birding?       │   Invitation to share
+│ How did you discover Aviary?     │
+│ What do you love about birds?    │
+│                                  │
+│ [Leave a comment below ↓]        │
+│                                  │
+└──────────────────────────────────┘
+              ↓
+┌──────────────────────────────────┐
+│ Comments                         │ ← Comments section
+│                                  │
+│ ┌──────────────────────────┐     │
+│ │ Share your thoughts...   │     │   Simple textarea
+│ │                          │     │
+│ │                          │     │
+│ └──────────────────────────┘     │
+│                                  │
+│ Name (optional): [_______]       │   Name field (optional)
+│                                  │   Email NOT required
+│ [Submit]                         │
+│                                  │
+├──────────────────────────────────┤
+│                                  │
+│ Sarah M. • 2 days ago            │ ← Posted comments
+│ "I started birding during the    │   Simple, clean
+│ pandemic. Watching birds at my   │   Minimal moderation
+│ feeder became my daily ritual.   │   Display chronological
+│ This site is beautiful!"         │
+│                                  │
+│ ──────────────────────────────    │
+│                                  │
+│ James K. • 1 week ago            │
+│ "My grandfather taught me to     │
+│ identify birds when I was six.   │
+│ He'd love this."                 │
+│                                  │
+│ ──────────────────────────────    │
+│                                  │
+│ [Load more comments]             │
+│                                  │
+└──────────────────────────────────┘
+```
+
+---
+
+### Content Guidelines
+
+**Tone:**
+- Personal and warm (first-person is OK)
+- Honest about what this is (passion project, not a business)
+- Grateful to the birding community
+- Humble about limitations (work in progress)
+- Enthusiastic but not overly sentimental
+
+**"Why It Exists" - Example Structure:**
+
+```
+[Opening - personal hook]
+This started when I [your birding moment]. I realized there 
+wasn't a website that combined [what you wanted].
+
+[The problem]
+Most field guides are books (not searchable). Most birding apps 
+are functional but not beautiful. Most websites are either 
+comprehensive but ugly, or pretty but incomplete.
+
+[The vision]
+I wanted to build something that:
+• Is always free and ad-free
+• Treats birds (and users) with respect
+• Combines beauty with utility
+• Makes migration visible and understandable
+• Celebrates the joy of discovery
+
+[The approach]
+This is a labor of love, built slowly in evenings and weekends. 
+It's not trying to be a business or maximize engagement. It's 
+just trying to be a beautiful, useful resource for anyone who 
+loves birds.
+
+[The community]
+If this helps you identify a bird, plan a trip, or just brings 
+a moment of beauty to your day, that's success. And if you 
+want to support it, share your birding story below.
+```
+
+---
+
+### Comments System
+
+**Technical Implementation:**
+
+**Option A: Third-party (easiest)**
+- Use Disqus, Commento, or utterances (GitHub issues)
+- Pro: Easy setup, spam filtering, moderation tools
+- Con: Third-party dependency, potential privacy concerns
+
+**Option B: Simple custom (aligned with values)**
+- Store comments in database (Supabase/Postgres)
+- Simple form: message + optional name
+- No authentication required
+- Manual moderation (approve before showing)
+- Pro: Full control, privacy-friendly, aligned with project ethos
+- Con: More work, need spam protection
+
+**Recommendation:** Option B (custom) using Supabase:
+```javascript
+// Comment submission
+async function submitComment(text, name = 'Anonymous') {
+  await supabase.from('comments').insert({
+    page: 'about',
+    text: text,
+    name: name,
+    approved: false,  // Requires manual approval
+    created_at: new Date()
+  });
+}
+
+// Display approved comments
+const { data: comments } = await supabase
+  .from('comments')
+  .select('*')
+  .eq('page', 'about')
+  .eq('approved', true)
+  .order('created_at', { ascending: false });
+```
+
+**Spam Protection:**
+- Require manual approval before showing
+- Simple honeypot field (hidden from real users)
+- Rate limiting (max 1 comment per IP per hour)
+- No links allowed in comments (or require approval)
+
+**Moderation:**
+- Simple admin page to approve/reject
+- Email notification on new comment
+- Flag inappropriate content
+- Can ban IP if needed
+
+---
+
+### Navigation
+
+**Header:**
+- Simple back arrow (← Back)
+- Or breadcrumb: Home > About
+
+**Footer (on About page):**
+```
+┌──────────────────────────────────┐
+│ Aviary                           │
+│                                  │
+│ [Home] [About] [GitHub]          │
+│                                  │
+│ Built with care in 2026          │
+│ Always free • No ads             │
+│                                  │
+└──────────────────────────────────┘
+```
+
+---
+
+### Accessibility & SEO
+
+**Meta Tags:**
+```html
+<title>About Aviary - An Illustrated Birding Field Guide</title>
+<meta name="description" content="Learn about Aviary, a free illustrated field guide to 11,000+ bird species, built with care and shared as a gift to the birding community.">
+<meta property="og:title" content="About Aviary">
+<meta property="og:description" content="A labor of love celebrating birds, migration, and discovery.">
+<meta property="og:image" content="/images/about-hero.jpg">
+```
+
+**Heading Structure:**
+```
+h1: About Aviary
+h2: What This Is
+h2: Why It Exists
+h2: How It Works
+h2: Support This Project
+h2: Share Your Story
+h3: Comments
+```
+
+**Screen Reader:**
+- Proper semantic HTML throughout
+- Alt text on hero image
+- Skip to comments link
+- Form labels for comment submission
 
 ---
 
