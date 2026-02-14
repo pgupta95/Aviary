@@ -17,45 +17,61 @@ Aviary is a labor of love — a free, beautiful, comprehensive birding resource 
 
 ## What Makes Aviary Unique
 
+- **Live Migration Map:** THE defining feature — animated visualization of bird migration happening right now across the world (no one else does this)
 - **Comprehensive Coverage:** All 11,000+ bird species worldwide, not just common ones
 - **Vintage Aesthetic:** AI-generated illustrations in John James Audubon's style
-- **Migration Visualization:** Interactive maps showing seasonal movement and epic journeys
 - **Always Free:** No ads, no paywalls, built as a gift to the birding community
 - **Modern Performance:** Static-generated, blazing fast, mobile-first
 - **Two-Tier Content:** Basic data for all species, enhanced storytelling for priority birds
 
-**Competitors:** Cornell's All About Birds (functional but not beautiful), Avibase (comprehensive but looks ancient), Sibley Guides (beautiful books but not a web database). Nobody combines beauty + comprehensiveness + modern web + free + migration visualization.
+**What makes the Migration Map unique:**
+- Shows birds IN MOTION (not just static ranges)
+- 5-8 animated paths showing families traveling together
+- Time slider reveals migration throughout the year
+- Critical stopover sites pulse when active (Delaware Bay in May, etc.)
+- AI groups 350+ migrants intelligently to avoid clutter
+- Works globally, degrades gracefully in data-sparse regions
+
+**Competitors:** Cornell's All About Birds (functional but not beautiful), Avibase (comprehensive but looks ancient), Sibley Guides (beautiful books but not a web database). 
+
+**Nobody visualizes migration like this.** Existing tools show static range maps. Aviary shows the journey - where birds are going, when they arrive, the spectacles happening right now.
 
 ---
 
 ## Documentation
 
 - **[README.md](README.md)** - Project overview, vision, and technical architecture
-- **[UX_SPECIFICATION.md](UX_SPECIFICATION.md)** - Detailed UX design for landing page and species detail pages
-- **Master Design Document** (Word doc) - Complete design vision and strategy
+- **[UX_SPECIFICATION.md](UX_SPECIFICATION.md)** - Complete UX design for all pages (Landing/Migration Map, Species, About)
+- **[MIGRATION_MAP_SPEC.md](MIGRATION_MAP_SPEC.md)** - Deep technical specification for the Migration Map feature
+- **[DESIGN_SUMMARY.md](DESIGN_SUMMARY.md)** - Brief overview for design feedback
+- **Master Design Document** (Word doc) - Strategic vision and brand guidelines
 
 ---
 
 ## Core User Flows
 
-### Primary: Search by Bird Name
-1. User lands on beautiful illustrated homepage
-2. Sees prominent search bar with smart autocomplete
+### Primary: Discover Migration (Landing Experience)
+1. User lands on birding.guide
+2. **Immediately sees Migration Map** - Live animated bird migration across the world
+3. Interacts with time slider to watch birds move through the year
+4. Optionally taps paths/hotspots to learn about migration groups
+5. **Scrolls down** to search for specific bird OR personalize to their location
+6. Continues to species pages or local discovery
+
+### Secondary: Search by Bird Name
+1. User lands on Migration Map
+2. Scrolls down to search bar
 3. Types bird name (fuzzy search, handles typos)
-4. Lands on species page with illustration, description, range, migration data
-5. Optional: Filter by season/location to refine
+4. Lands on species page with sticky illustration, description, range, migration data
+5. Optional: Explore similar birds or return to Migration Map
 
-### Secondary: Explore Birds Near You
-1. User clicks "Birds Around You" button on homepage
-2. System detects location (or user enters manually)
-3. Shows birds present in that region THIS MONTH
-4. User can adjust time-of-year slider to see seasonal changes
-5. Click any bird to see full species page
-
-### Supporting: Browse by Family/Region
-1. User explores via taxonomy (warblers, raptors, shorebirds)
-2. Or browses regional pages (Northeast, Pacific Northwest, etc.)
-3. Filters available: residents, migrants, seasonal visitors
+### Tertiary: Explore Birds Around You
+1. User sees Migration Map on landing
+2. Scrolls to "Birds Around You" button
+3. Grants location permission (or enters manually)
+4. Map above updates to show local migrations + current month
+5. Scrolls down to see complete bird list with filters
+6. Clicks any bird → Species detail page
 
 ---
 
@@ -459,49 +475,68 @@ aviary/
 
 ## Landing Page Design
 
-### Layout Philosophy
-**Clean, centered, breathing room.** The illustration carries the vintage aesthetic. Everything else is minimal and gets out of the way.
+### Philosophy: Migration Map First
+**The Migration Map IS the landing page.** No traditional landing page — lead with the unique feature immediately.
+
+Users see animated bird migration the moment they arrive. Search and discovery are below the spectacle.
 
 ```
 ┌─────────────────────────────────────────┐
-│  AVIARY                    [About] [→]  │  ← Minimal header
+│ AVIARY                             [≡]  │  ← Minimal header
 ├─────────────────────────────────────────┤
 │                                         │
 │                                         │
-│     ┌───────────────────────┐          │  ← Hero: Beautiful 
-│     │                       │          │     Audubon illustration
-│     │  [Bird illustration]  │          │     Large, centered
-│     │   Generous padding    │          │     Plenty of cream space
-│     │                       │          │     THIS is the vintage
-│     └───────────────────────┘          │
+│     [FULL-SCREEN MIGRATION MAP]         │  ← THE feature
+│                                         │     Animated paths
+│     [5-8 flowing migration paths]       │     Global view
+│     [Pulsing hotspots]                  │     Current month
 │                                         │
-│         Discover Birds                  │  ← Simple headline
-│         An illustrated field guide      │     Elegant serif
+│     Live Bird Migration                 │  ← Simple overlay
+│     Across the World                    │     Bottom of map
+│                                         │
+│     Jan ━━━━━●━━━━━━━━━━━━━━━━ Dec     │  ← Time slider
+│     [▶ Play]          [Legend ≡]        │     Controls
+│                                         │
+│           ↓ Scroll to explore           │  ← Hint (fades)
+└─────────────────────────────────────────┘
+              ↓ Scroll
+┌─────────────────────────────────────────┐
+│                                         │
+│         Discover Any Bird               │  ← Search section
 │                                         │
 │    ┌──────────────────────────────┐    │  ← Search bar
-│    │  Search by bird name...      │    │     Clean, large
-│    └──────────────────────────────┘    │     Subtle focus state
+│    │  Search by bird name...      │    │     Below the map
+│    └──────────────────────────────┘    │
 │                                         │
-│         [Birds Around You →]            │  ← Simple button
-│                                         │     Minimal, clear
+│    [See Birds Around You →]             │  ← Personalizes map
+│                                         │     above
 │                                         │
-│                                         │
-│    Featured Birds                       │
-│    ┌─────┐  ┌─────┐  ┌─────┐          │  ← 3 cards
-│    │ img │  │ img │  │ img │          │     Clean grid
-│    │ text│  │ text│  │ text│          │     Illustrations shine
-│    └─────┘  └─────┘  └─────┘          │
-│                                         │
+└─────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────┐
+│ Spectacular Journeys                    │  ← Featured (optional)
+│ [3-4 enhanced species cards]            │
 └─────────────────────────────────────────┘
 ```
 
-### Interactions
-1. **Search bar:**
-   - Large, inviting, autofocus on load
-   - Real-time autocomplete as user types
-   - Fuzzy matching (handles "rob" → "American Robin", "robin", "Rufous-backed Robin")
-   - Shows thumbnail + scientific name in dropdown
-   - Enter key or click goes to species page
+### Key Interactions
+1. **Migration Map:**
+   - Animates on load (staggered entrance)
+   - Time slider updates paths dynamically
+   - Tap path → Modal with migration group details
+   - Tap hotspot → Details about that stopover
+   - Play button → Auto-animate through year
+
+2. **Search:**
+   - Scroll down to reach
+   - Fuzzy autocomplete
+   - Direct navigation to species page
+
+3. **Birds Around You:**
+   - Requests location
+   - Scrolls back up to map
+   - Zooms map to user's region
+   - Shows local migrations
 
 2. **Birds Around You button:**
    - One click → location detection (or manual entry)
