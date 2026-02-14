@@ -28,6 +28,14 @@ Aviary is a labor of love — a free, beautiful, comprehensive birding resource 
 
 ---
 
+## Documentation
+
+- **[README.md](README.md)** - Project overview, vision, and technical architecture
+- **[UX_SPECIFICATION.md](UX_SPECIFICATION.md)** - Detailed UX design for landing page and species detail pages
+- **Master Design Document** (Word doc) - Complete design vision and strategy
+
+---
+
 ## Core User Flows
 
 ### Primary: Search by Bird Name
@@ -54,7 +62,26 @@ Aviary is a labor of love — a free, beautiful, comprehensive birding resource 
 ## Design Principles
 
 ### The Feeling
-Walking into a natural history museum. Opening a leather-bound field guide from 1890. The quiet satisfaction of identifying a bird you've been wondering about. Discovery that feels like reverence, not distraction.
+**Restrained Vintage** — Think museum exhibit, not ren faire.
+
+Walking into a modern natural history museum where the space is clean and well-lit, but the Audubon prints on the walls carry centuries of history. Opening a beautifully designed coffee table book about birds. The quiet satisfaction of identifying a bird you've been wondering about. Discovery that feels like reverence, not distraction.
+
+**Design Philosophy:**
+> "Simple enough to use on a phone at the beach, charming enough to linger over on a Sunday morning."
+
+**The Balance:**
+- Modern, clean interface structure (no skeuomorphic book spreads or fake page curls)
+- Vintage soul comes from illustrations + elegant typography
+- Subtle warmth through minimal texture (barely perceptible paper grain)
+- Thoughtful details, not ornate decoration
+- Everything stays out of the way — let the birds be the stars
+
+**Interface Principles:**
+- **Minimal:** Clean layouts, generous white space, clear hierarchy
+- **Stunning:** Audubon illustrations do the heavy lifting — UI supports them quietly
+- **Intuitive:** Search or explore — no learning curve, no hidden features
+- **Respectful:** No dark patterns, no engagement tricks — find, learn, move on
+- **Warm:** Subtle texture and elegant typography add soul without decoration
 
 ### Visual Identity
 
@@ -72,12 +99,30 @@ Walking into a natural history museum. Opening a leather-bound field guide from 
 - Body Text: Crimson Pro (readable serif for long-form)
 - Both free from Google Fonts
 
-**Animations:**
-- Cards lift 8px on hover (like turning a page)
-- Staggered fade-up for bird cards (50ms delays)
-- Time-of-year slider with gradient seasonal colors
-- Animated migration paths with pulsing markers
-- **60fps non-negotiable** — smooth, never jarring
+**Subtle Charm Elements (Where Vintage Shows):**
+- Drop cap on first paragraph of enhanced species descriptions
+- Slightly looser letter-spacing on headings (classic typography: 0.02em)
+- True italic scientific names (proper italics, not slanted roman)
+- Very subtle paper grain texture (5-10% opacity, barely perceptible)
+- Enhanced species badge: Simple wax seal icon (flat design, not gradient)
+- Audio player controls: Brass-colored but minimal (no skeuomorphic radio dials)
+- Migration paths: SVG stroke with slight hand-drawn wobble
+
+**What to Avoid:**
+- ❌ Heavy texture or distressed effects (no coffee stains, torn edges)
+- ❌ Ornate borders or decorative filigree
+- ❌ Skeuomorphic UI (no fake book bindings, leather textures, 3D embossing)
+- ❌ Gimmicky page-flip animations or forced vintage interactions
+- ❌ Too much brown/sepia (keep it bright with cream backgrounds)
+
+**Animations & Interactions (Restrained):**
+- Cards lift gently on hover: 4px elevation, subtle shadow increase (like picking up a photograph)
+- Staggered fade-up for bird cards: 50ms delays, smooth and purposeful
+- Time-of-year slider: Gradient bar with seasonal colors, smooth drag interaction
+- Migration paths: Animate on with slight hand-drawn wobble (1-2 seconds, once)
+- Page transitions: Simple fades with barely visible texture overlay
+- **60fps non-negotiable** — smooth, never jarring, always respectful of user's attention
+- **Philosophy:** Delightful but not gimmicky, supports the content, never competes with it
 
 ### Interface Philosophy
 - **Minimal:** Don't overwhelm — clear search, simple navigation
@@ -414,29 +459,39 @@ aviary/
 
 ## Landing Page Design
 
-### Layout
+### Layout Philosophy
+**Clean, centered, breathing room.** The illustration carries the vintage aesthetic. Everything else is minimal and gets out of the way.
+
 ```
 ┌─────────────────────────────────────────┐
-│  AVIARY                                 │  ← Header (minimal)
+│  AVIARY                    [About] [→]  │  ← Minimal header
 ├─────────────────────────────────────────┤
 │                                         │
-│     [Beautiful vintage illustration]   │  ← Hero image
-│     Large illustrated bird(s)           │     (rotates daily?)
 │                                         │
-│     ┌─────────────────────────────┐    │  ← Search bar
-│     │ Search by bird name...      │    │     (prominent, centered)
-│     └─────────────────────────────┘    │
+│     ┌───────────────────────┐          │  ← Hero: Beautiful 
+│     │                       │          │     Audubon illustration
+│     │  [Bird illustration]  │          │     Large, centered
+│     │   Generous padding    │          │     Plenty of cream space
+│     │                       │          │     THIS is the vintage
+│     └───────────────────────┘          │
 │                                         │
-│          [Birds Around You →]          │  ← Explore button
+│         Discover Birds                  │  ← Simple headline
+│         An illustrated field guide      │     Elegant serif
 │                                         │
-│     "Discover 11,000+ birds with       │  ← Tagline
-│      beautiful illustrations and       │
-│      migration stories"                │
+│    ┌──────────────────────────────┐    │  ← Search bar
+│    │  Search by bird name...      │    │     Clean, large
+│    └──────────────────────────────┘    │     Subtle focus state
 │                                         │
-├─────────────────────────────────────────┤
-│  Featured: 3-4 enhanced species cards  │  ← Showcase
-├─────────────────────────────────────────┤
-│  Footer (minimal)                       │
+│         [Birds Around You →]            │  ← Simple button
+│                                         │     Minimal, clear
+│                                         │
+│                                         │
+│    Featured Birds                       │
+│    ┌─────┐  ┌─────┐  ┌─────┐          │  ← 3 cards
+│    │ img │  │ img │  │ img │          │     Clean grid
+│    │ text│  │ text│  │ text│          │     Illustrations shine
+│    └─────┘  └─────┘  └─────┘          │
+│                                         │
 └─────────────────────────────────────────┘
 ```
 
