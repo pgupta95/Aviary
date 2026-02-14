@@ -35,104 +35,420 @@ Version 1.0 - February 2026
 
 ---
 
-## Landing Page
+## Landing Page (Migration Map)
 
 ### Purpose
-**Primary Goal:** Get users to either search for a specific bird or explore birds around them.
+**Primary Goal:** Immediately show what makes Aviary unique - live bird migration visualization.
+
+**Core Experience:** User lands on the site and sees the Migration Map in full glory. The wow factor is instant. No boring landing page, no pitch - just beauty and discovery.
 
 **Secondary Goals:**
-- Showcase the beauty and quality of the site
-- Demonstrate the vintage aesthetic
-- Set expectations (comprehensive, illustrated, migration-focused)
+- Provide search for specific birds (below the map)
+- Allow personalization ("See birds near you")
+- Showcase featured migrations
 
-### Layout (Mobile)
+### Layout Philosophy
+
+**The map IS the landing page.** 
+
+Why hide the best feature behind a traditional landing page? Lead with the unique value immediately. Search and exploration are still accessible - just below the spectacle.
+
+### Detailed Layout (Mobile)
+
+#### Full-Screen Migration Map
 
 ```
-┌──────────────────────────┐
-│ AVIARY              [≡]  │  ← Minimal header
-├──────────────────────────┤    Logo left, menu right
-│                          │
-│                          │
-│                          │
-│     [Audubon-style       │  ← Hero illustration
-│      Illustration]       │    Fills viewport
-│                          │    Rotates daily or seasonally
-│                          │    Generous padding (2rem)
-│                          │
-│                          │
-│ Discover Birds           │  ← Headline
-│ An illustrated field     │    Serif, elegant
-│ guide to the world       │
-│                          │
-└──────────────────────────┘
-           ↓ Scroll
+┌──────────────────────────────────┐
+│ AVIARY                      [≡]  │ ← Minimal header (40px)
+├──────────────────────────────────┤
+│                                  │
+│                                  │
+│     [MIGRATION MAP - GLOBAL]     │ ← FULL VIEWPORT HEIGHT
+│                                  │   Spectacular default view
+│                                  │   
+│     [Animated migration paths]   │   Shows epic journeys:
+│     [Multiple continents]        │   - Arctic Tern (pole-to-pole)
+│                                  │   - Bar-tailed Godwit (Pacific)
+│                                  │   - Sanderling (Americas)
+│     ◉ Global view                │   - Swainson's Hawk
+│                                  │   
+│                                  │   5-8 paths maximum
+│     Live Bird Migration          │   Color-coded by family
+│     Across the World             │   Animated particles flowing
+│                                  │
+│    Jan ━━━━━●━━━━━━━━━━━━━ Dec   │ ← Time slider (integrated)
+│                                  │   Defaults to current month
+│    [▶ Play]        [Legend ≡]   │ ← Optional controls
+│                                  │
+│         ↓ Scroll to explore      │ ← Subtle hint (fades after 3s)
+│                                  │
+└──────────────────────────────────┘
 
-┌──────────────────────────┐
-│ ┌────────────────────┐   │  ← Search bar
-│ │ Search by name...  │   │    Large, prominent
-│ └────────────────────┘   │    Autocomplete on type
-│                          │
-│      [Birds Around       │  ← Primary CTA
-│       You →]             │    Clear, simple button
-│                          │
-└──────────────────────────┘
-           ↓
-
-┌──────────────────────────┐
-│ Featured Birds           │  ← 3-4 showcase cards
-│                          │
-│ ┌────────┐  ┌────────┐  │    Grid layout
-│ │ [img]  │  │ [img]  │  │    Enhanced species only
-│ │ Name   │  │ Name   │  │    Rotates weekly/seasonal
-│ │ Excerpt│  │ Excerpt│  │
-│ └────────┘  └────────┘  │
-│                          │
-│ ┌────────┐  ┌────────┐  │
-│ │ [img]  │  │ [img]  │  │
-│ │ ...    │  │ ...    │  │
-│ └────────┘  └────────┘  │
-└──────────────────────────┘
-           ↓
-
-┌──────────────────────────┐
-│ About • Support • GitHub │  ← Footer (minimal)
-└──────────────────────────┘
+Visual Treatment:
+- Map fills entire viewport (100vh minus 40px header)
+- Paths animate on load (staggered entrance for drama)
+- Time slider integrated into map (bottom overlay)
+- Text overlays have semi-transparent backgrounds
+- "Scroll to explore" hint pulses gently, fades after 3 seconds
 ```
 
-### Interactions
+**Default Map State:**
+- **Location:** Global view (shows all continents)
+- **Month:** Current real-world month
+- **Paths shown:** 5-8 most spectacular migrations active this month
+  - If May: Arctic Tern, Sanderling, Warblers, etc. (northbound)
+  - If September: Bar-tailed Godwit, Raptors, etc. (southbound)
+  - If January: Very few paths (most birds stationary - shows clustering)
+- **Hotspots:** 1-2 most critical for current month (e.g., Delaware Bay in May)
 
-**Search Bar:**
-- Autofocus on desktop (not mobile - prevents keyboard popup)
-- Real-time fuzzy search as user types
-- Shows thumbnail + scientific name in dropdown
-- Handles typos ("rob" → "American Robin", "European Robin", "Rufous-backed Robin")
-- Max 8 results shown, rest accessible via "See all results"
-- Enter or click → Species detail page
+**First Impression Flow:**
+```
+User lands on birding.guide
+  ↓
+Sees full-screen animated migration map
+  ↓ (3-5 seconds of pure visual experience)
+Instinctively drags time slider
+  ↓
+Watches birds move through the year
+  ↓
+"Whoa, what IS this?"
+  ↓
+Scrolls down to learn more
+```
 
-**Birds Around You Button:**
-- Requests geolocation permission on click
-- If denied → Manual location entry modal
-- If granted → Smooth transition to filtered bird list (current month)
-- Shows loading state while fetching data
+---
 
-**Featured Cards:**
-- Click → Species detail page
-- Gentle lift on hover (4px elevation)
-- Staggered fade-in on page load (50ms delays)
-- Images lazy-loaded
+#### Search & Personalization Section
 
-### Content Strategy
+```
+              ↓ Scroll
 
-**Hero Illustration:**
-- Rotates based on season or day of week
-- Always an enhanced species with beautiful illustration
-- Could tie to current season (hummingbird in summer, cardinal in winter)
+┌──────────────────────────────────┐
+│                                  │
+│ Discover Any Bird                │ ← Section header
+│                                  │   Clean, simple
+│ ┌──────────────────────────┐     │
+│ │ 🔍 Search by name...     │     │ ← Search bar (large)
+│ └──────────────────────────┘     │   Autocomplete on type
+│                                  │   Fuzzy matching
+│                                  │
+│            or                    │ ← Divider text
+│                                  │
+│ ┌──────────────────────────┐     │
+│ │  See Birds Around You →  │     │ ← Personalization CTA
+│ └──────────────────────────┘     │   Updates map to user location
+│                                  │
+└──────────────────────────────────┘
 
-**Featured Birds (3-4 cards):**
-- Always enhanced species (showcase quality)
-- Mix of: charismatic (eagle, owl), common (robin, cardinal), interesting migrants
-- Updates monthly to keep content fresh
-- Short excerpt (1 sentence) from enhanced description
+CSS:
+.search-section {
+  padding: 3rem 2rem;
+  background: #FAF7F0;
+  text-align: center;
+}
+
+.search-bar {
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.2rem;
+  padding: 1.25rem 1.5rem;
+  border: 2px solid #8B7355;
+  border-radius: 12px;
+  background: white;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.search-bar:focus {
+  border-color: #2D4A3E;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(45, 74, 62, 0.1);
+}
+
+.personalize-button {
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.1rem;
+  padding: 1rem 2rem;
+  background: #2D4A3E;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.personalize-button:hover {
+  background: #1A2F23;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(26, 47, 35, 0.2);
+}
+```
+
+**Search Interaction:**
+1. User types "sander" 
+   → Autocomplete shows "Sanderling", "Sandhill Crane", "Sand Martin"
+2. User selects "Sanderling"
+   → Navigates directly to species page (no modal preview)
+3. Clean, fast, familiar
+
+**"Birds Around You" Interaction:**
+1. User clicks button
+   → Requests location permission (browser API)
+2. If granted:
+   → Map above scrolls back into view
+   → Animates zoom to user's region
+   → Updates paths to show local migrations
+   → URL updates to /explore?location=...
+3. If denied:
+   → Shows manual location entry
+   → "Enter your city or region"
+
+---
+
+#### Featured Migrations Section (Optional)
+
+```
+              ↓ Scroll
+
+┌──────────────────────────────────┐
+│ Spectacular Journeys             │ ← Section header
+│                                  │
+│ ┌────────────────────────────┐   │
+│ │ [Sanderling illustration]  │   │ ← Card 1
+│ │                            │   │
+│ │ Sanderling                 │   │
+│ │ 10,000 km migration        │   │   Enhanced species
+│ │ Arctic → South America     │   │   Tap → Species page
+│ │                            │   │
+│ │ [Learn more →]             │   │
+│ └────────────────────────────┘   │
+│                                  │
+│ ┌────────────────────────────┐   │
+│ │ [Arctic Tern illustration] │   │ ← Card 2
+│ │                            │   │
+│ │ Arctic Tern                │   │
+│ │ 44,000 km migration        │   │
+│ │ Pole to pole               │   │
+│ │                            │   │
+│ │ [Learn more →]             │   │
+│ └────────────────────────────┘   │
+│                                  │
+│ [2-4 total featured cards]       │
+│                                  │
+└──────────────────────────────────┘
+
+CSS:
+.featured-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(26, 47, 35, 0.08);
+  margin-bottom: 1.5rem;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.featured-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(26, 47, 35, 0.15);
+}
+
+.featured-card img {
+  width: 100%;
+  aspect-ratio: 3/2;
+  object-fit: cover;
+}
+```
+
+**Featured Species Selection:**
+- Rotate monthly or seasonally
+- Show 3-4 enhanced species with epic migration stories
+- Click card → goes to species detail page
+- Mobile: Stack vertically
+- Desktop: Grid layout (2 columns)
+
+---
+
+### User Flows
+
+**Flow 1: Visual Discovery → Search**
+```
+Land on site
+  ↓
+See Migration Map (amazed)
+  ↓
+Drag time slider (explore)
+  ↓
+Tap a path (learn about shorebirds)
+  ↓
+Scroll down
+  ↓
+Search for specific bird (Sanderling)
+  ↓
+Species detail page
+```
+
+**Flow 2: Direct Search**
+```
+Land on site
+  ↓
+Scroll immediately to search
+  ↓
+Type bird name
+  ↓
+Species detail page
+```
+
+**Flow 3: Local Discovery**
+```
+Land on site
+  ↓
+See map, scroll to "Birds Around You"
+  ↓
+Grant location
+  ↓
+Map personalizes to their region
+  ↓
+Explore local migrations
+  ↓
+Scroll down for full bird list
+```
+
+---
+
+### Desktop Adaptations
+
+**Larger screens (>768px):**
+
+```
+┌─────────────────────────────────────────────┐
+│ AVIARY                                 [≡]  │
+├─────────────────────────────────────────────┤
+│                                             │
+│         [MIGRATION MAP - LARGER]            │ ← Still full viewport
+│                                             │   More detail visible
+│         [More paths visible]                │   Potentially 8-10 paths
+│                                             │   (vs 5-8 on mobile)
+│                                             │
+│    Live Bird Migration Across the World     │
+│                                             │
+│    Jan ━━━━━━━●━━━━━━━━━━━━━━━━━━━ Dec     │
+│                                             │
+│    [▶ Play]  [Legend ≡]   ↓ Scroll          │
+└─────────────────────────────────────────────┘
+                 ↓ Scroll
+┌─────────────────────────────────────────────┐
+│                                             │
+│          Discover Any Bird                  │
+│                                             │
+│  ┌──────────────────────────────────┐       │ ← Wider search
+│  │ 🔍 Search by name...             │       │
+│  └──────────────────────────────────┘       │
+│                                             │
+│  ┌──────────────────────────────────┐       │
+│  │  See Birds Around You →          │       │
+│  └──────────────────────────────────┘       │
+│                                             │
+└─────────────────────────────────────────────┘
+                 ↓
+┌─────────────────────────────────────────────┐
+│ Spectacular Journeys                        │
+│                                             │
+│ ┌──────────┐ ┌──────────┐ ┌──────────┐     │ ← Grid layout
+│ │ Sanderl. │ │ Arctic T.│ │ Bar-tail │     │   3 columns
+│ │ [card]   │ │ [card]   │ │ [card]   │     │
+│ └──────────┘ └──────────┘ └──────────┘     │
+└─────────────────────────────────────────────┘
+```
+
+**Key differences:**
+- Map can show more paths (screen is bigger)
+- Search bar wider (better for longer names)
+- Featured cards in grid instead of stack
+- Otherwise same experience (consistency)
+
+---
+
+### Performance Targets
+
+**Critical for landing page:**
+- **First Contentful Paint:** <1.5s (map base visible)
+- **Time to Interactive:** <2.5s (slider draggable)
+- **Smooth animations:** 60fps (map loads, then animates)
+- **Initial bundle:** <150KB (code-split heavy features)
+
+**Loading Strategy:**
+1. Show map base immediately (static image or simplified SVG)
+2. Load animation library (Framer Motion or CSS)
+3. Animate paths in (staggered entrance)
+4. Enable slider interactivity
+5. Lazy load featured cards (below fold)
+
+---
+
+### Accessibility
+
+**Keyboard Navigation:**
+- Tab through: Search → Personalize button → Featured cards
+- Time slider: Arrow keys to adjust month
+- Enter on card: Navigate to species page
+
+**Screen Reader:**
+```html
+<main aria-label="Migration Map">
+  <section aria-label="Live bird migration visualization">
+    <div role="img" aria-label="Animated map showing bird migration paths across continents">
+      <!-- Map SVG -->
+    </div>
+    <div role="slider" aria-label="Select month" aria-valuemin="1" aria-valuemax="12" aria-valuenow="5">
+      <!-- Time slider -->
+    </div>
+  </section>
+  
+  <section aria-label="Search and discovery">
+    <label for="bird-search">Search for any bird species</label>
+    <input id="bird-search" type="search" />
+    
+    <button aria-label="Find birds near your location">
+      See Birds Around You
+    </button>
+  </section>
+</main>
+```
+
+**Alternative for Screen Readers:**
+- Text description of current migration activity
+- "In May, 47 species are migrating through North America..."
+- List of active migration groups (Shorebirds, Warblers, etc.)
+
+---
+
+### SEO Optimization
+
+**Meta Tags:**
+```html
+<title>Aviary - Live Bird Migration Map & Field Guide</title>
+<meta name="description" content="Watch bird migration happening right now across the world. Explore 11,000+ species with beautiful Audubon-style illustrations, migration maps, and bird calls. Always free.">
+<meta property="og:title" content="Aviary - Live Bird Migration Map">
+<meta property="og:description" content="See bird migration as it happens. Free illustrated field guide with interactive migration maps.">
+<meta property="og:image" content="/images/og-migration-map.jpg">
+<meta property="og:type" content="website">
+```
+
+**Structured Data:**
+```json
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Aviary",
+  "description": "Interactive bird migration map and illustrated field guide",
+  "applicationCategory": "EducationalApplication",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+```
 
 ---
 
@@ -140,91 +456,218 @@ Version 1.0 - February 2026
 
 ### Purpose
 **Answer:** "Is this the bird I saw?" (ID confirmation)  
-**Inform:** Interesting facts, sounds, range  
-**Invite:** Discover similar birds or explore migration
+**Inform:** Interesting facts, sounds, range, migration  
+**Invite:** Discover similar birds or explore local migrations
+
+### Design Philosophy: Illustration Always Visible
+
+**Key principle:** The illustration is not just a hero image - it's the anchor for the entire page. It should remain visible as the user scrolls through content, keeping the bird's visual presence throughout the experience.
+
+**Approach:** Sticky illustration that starts full-screen, then shrinks and stays at top as user scrolls.
 
 ### Information Architecture
 
 ```
-1. Hero Illustration
-   └─ Name (left-aligned bottom)
+1. Hero Illustration (Full Viewport)
+   └─ Bird name + scientific name (overlay)
 
-2. Facts (What Makes Them Special)
-   ├─ 2-sentence summary
-   ├─ Look For (behavior/field marks)
-   ├─ Did You Know? (surprising facts)
-   └─ Conservation (status if relevant)
+2. Sticky Illustration Card (Shrinks, stays visible)
+   └─ Continues to show bird as user scrolls
 
-3. Sounds
-   └─ 1-3 audio recordings with descriptions
-
-4. Map (Where & When to Find)
-   ├─ Interactive map
-   ├─ Time slider (12 months or 4 seasons)
-   └─ Contextual description
-
-5. Exit (Discovery)
-   ├─ 2 similar bird tiles
-   └─ "See more birds near you" CTA
+3. Content Cards (Float below sticky illustration)
+   ├─ Facts (What Makes Them Special)
+   ├─ Sounds (Audio carousel)
+   ├─ Map (Where & When to Find)
+   └─ Discovery (Similar Birds)
 ```
 
 ### Detailed Layout (Mobile)
 
-#### 1. Hero Section
+#### 1. Hero Section (Initial State)
 
 ```
-┌──────────────────────────┐
-│ ←                        │  ← Back button (top-left)
-│                          │
-│                          │
-│     [Audubon-style       │  ← Illustration fills viewport
-│      Illustration]       │    High-quality AI-generated
-│                          │    Shows most common plumage
-│                          │    Generous padding (2rem)
-│                          │
-│                          │
-│                          │
-│ Sanderling               │  ← Name (left-aligned bottom)
-│ Calidris alba            │    Scientific name below
-│                          │
-└──────────────────────────┘
+┌──────────────────────────────────┐
+│ ← Back                           │  ← Minimal header (40px)
+│                              [≡] │     Back button + menu
+├──────────────────────────────────┤
+│                                  │
+│                                  │
+│                                  │
+│     [AUDUBON ILLUSTRATION]       │  ← Full viewport (100vh - 40px)
+│                                  │     Gorgeous, breathing
+│         Full screen              │     High quality
+│         Beautiful                │     Generous padding
+│                                  │
+│                                  │
+│                                  │
+│                                  │
+│ ┌──────────────────────────┐     │  ← Name overlay (bottom)
+│ │ Sanderling               │     │     Semi-transparent bg
+│ │ Calidris alba            │     │     Elegant typography
+│ └──────────────────────────┘     │
+│                                  │
+└──────────────────────────────────┘
 
 CSS:
-.hero {
+.hero-illustration {
+  height: calc(100vh - 40px);
   position: relative;
-  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 2rem;
   background: #FAF7F0;
 }
 
-.bird-name {
+.hero-illustration img {
+  max-width: 100%;
+  max-height: 85%;
+  object-fit: contain;
+}
+
+.bird-name-overlay {
   position: absolute;
   bottom: 2rem;
   left: 2rem;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 2rem;
-  font-weight: 600;
-  color: #1A2F23;
-  line-height: 1.2;
+  right: 2rem;
+  background: rgba(250, 247, 240, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(26, 47, 35, 0.1);
 }
 
-.scientific-name {
+.bird-common-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #1A2F23;
+  margin-bottom: 0.25rem;
+}
+
+.bird-scientific-name {
+  font-family: 'Crimson Pro', serif;
   font-style: italic;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   color: #8B7355;
-  margin-top: 0.25rem;
 }
 ```
 
-**Design Notes:**
-- Name placement: Left-bottom feels organic, less formal than top-right
-- Scientific name in true italics (not slanted roman)
-- Back button uses simple arrow icon, no text
-- Illustration breathes with generous padding
+---
+
+#### 2. Sticky Illustration (Scrolled State)
+
+```
+As user scrolls down ↓
+
+┌──────────────────────────────────┐
+│ ← Sanderling                 [≡] │  ← Header with bird name
+├──────────────────────────────────┤
+│                                  │
+│   [Illustration - Compact]       │  ← STICKY card (35-40vh)
+│                                  │     Stays at top
+│   Sanderling                     │     Name visible
+│   Calidris alba                  │     Scrolls with page
+│                                  │
+└──────────────────────────────────┘
+  ↑ Sticks here - doesn't scroll away ↑
+─────────────────────────────────────
+│                                  │
+│ ┌────────────────────────────┐   │  ← Content cards
+│ │ What Makes Them Special    │   │     Scroll underneath
+│ │ ...                        │   │     White/cream bg
+│ └────────────────────────────┘   │     Clean separation
+│                                  │
+│ ┌────────────────────────────┐   │
+│ │ ♪ Sounds                   │   │
+│ │ ...                        │   │
+│ └────────────────────────────┘   │
+│                                  │
+
+CSS:
+.illustration-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: white;
+  border-bottom: 1px solid rgba(139, 115, 85, 0.2);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(26, 47, 35, 0.08);
+}
+
+/* Initial state (full screen) */
+.illustration-sticky.initial {
+  height: calc(100vh - 40px);
+  border-bottom: none;
+  box-shadow: none;
+}
+
+/* Scrolled state (compact) */
+.illustration-sticky.scrolled {
+  height: 35vh;
+  min-height: 280px;
+}
+
+.illustration-sticky img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 1rem;
+}
+
+.sticky-bird-info {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  right: 1rem;
+  text-align: center;
+}
+
+.sticky-bird-info h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.sticky-bird-info .scientific {
+  font-style: italic;
+  color: #8B7355;
+  font-size: 1rem;
+}
+```
+
+**Scroll Behavior:**
+```javascript
+// Detect scroll and toggle states
+let lastScroll = 0;
+
+window.addEventListener('scroll', () => {
+  const illustrationCard = document.querySelector('.illustration-sticky');
+  const scrollY = window.scrollY;
+  
+  if (scrollY > 50) {
+    // User has scrolled down - shrink illustration
+    illustrationCard.classList.remove('initial');
+    illustrationCard.classList.add('scrolled');
+  } else {
+    // User at top - show full illustration
+    illustrationCard.classList.add('initial');
+    illustrationCard.classList.remove('scrolled');
+  }
+  
+  lastScroll = scrollY;
+});
+```
 
 ---
 
-#### 2. Facts Section
+#### 3. Content Cards (Below Sticky Illustration)
+
+---
+
+#### Facts Section (Content Card)
+
+**Note:** This and all following sections appear as content cards that scroll underneath the sticky illustration. The bird remains visible at the top throughout.
 
 ```
 ┌──────────────────────────┐
@@ -974,565 +1417,275 @@ With Landing and Species pages defined, this document continues with:
 
 ---
 
-## Explore Page
+## Explore Page (Migration Map)
 
 ### Purpose
-**Primary Goal:** Help users discover birds in their location right now (or any location/time).
+**Primary Goal:** Visualize bird migration as a living, flowing system.
 
-**Core Question Answered:** "What birds can I see here this month?"
+**Core Question Answered:** "What birds are moving through the world RIGHT NOW?"
 
 **Secondary Goals:**
-- Enable temporal exploration (what's here in other months?)
-- Support spatial exploration (what's in other regions?)
-- Filter by habitat for focused discovery
+- Show migration as temporal patterns (not just static ranges)
+- Make invisible journeys visible and understandable
+- Highlight critical stopover sites and migration spectacles
+- Support local discovery ("What's here?") after the wow factor
 
-### User Entry Points
+### Revolutionary Approach
 
-**From Landing Page:**
-- Click "Birds Around You" button
-- Auto-detects location OR prompts for manual entry
-- Defaults to current month
+**Traditional tools show:** Where birds are (static heat maps, range polygons)  
+**Aviary shows:** Where birds are GOING (animated migration flows, birds in motion)
 
-**From Species Page:**
-- Click "See more birds near you" CTA
-- Inherits user's location (if already set)
-- Defaults to current month
-- **No habitat pre-filtering** - shows all birds in area
+This is the defining feature that makes Aviary unique.
 
-**From Direct URL:**
-- `/explore` with optional params
-- Restores previous state if returning via back button
+### Design Philosophy
+
+**AI does the heavy lifting:**
+- Auto-groups 350+ migrants into 5-8 visual flows
+- Infers realistic paths from breeding/winter ranges + flyways
+- Filters to show only ACTIVE migrations (birds moving NOW)
+- Generates contextual narratives for each month
+
+**User does minimal work:**
+- Looks at the map (immediately beautiful)
+- Drags time slider (brings migration to life)
+- Optionally taps paths/hotspots to learn more
+- Scrolls down for traditional bird list
+
+**No toggles, no choices, one perfect default view.**
 
 ### Information Architecture
 
 ```
-1. Location & Controls
-   ├─ Location input (auto-detect or manual)
-   ├─ Compact map (context + density visualization)
-   ├─ Time slider (month selection)
-   └─ Radius control (search area)
+1. Migration Map (Full-Screen Feature)
+   ├─ Interactive world map
+   ├─ 5-8 animated migration paths (auto-grouped)
+   ├─ 1-3 pulsing hotspots (critical stopovers)
+   ├─ Time slider (Jan-Dec)
+   ├─ Auto-generated status narrative
+   └─ Optional controls (Play, Legend)
 
-2. Filtering & Display Options
-   ├─ Habitat filter (optional chips)
-   ├─ View toggle (Grid/List)
-   └─ Sort dropdown
+2. What's Flying Through (Educational Context)
+   ├─ List of active migration groups
+   ├─ Top species in each group
+   ├─ Route summaries
+   └─ CTAs to explore families
 
-3. Results
-   ├─ Bird count header
-   ├─ Grid or List of birds (adaptive default)
-   └─ Pagination (load more or infinite scroll)
+3. All Birds Here Now (Traditional Discovery)
+   ├─ Complete species list (residents + migrants)
+   ├─ Grid/List toggle
+   ├─ Sort options
+   └─ Standard browse experience
 ```
 
 ### Detailed Layout (Mobile)
 
-#### 1. Header & Location
+#### 1. Migration Map (The Feature)
+
+#### 1. Migration Map (The Feature)
 
 ```
 ┌──────────────────────────────────┐
-│ Birds Around You            [≡]  │ ← Page header
-├──────────────────────────────────┤
-│                                  │
-│ ┌──────────────────────────┐     │ ← Location input
-│ │ 📍 Santa Barbara, CA  [✕]│     │   - Auto-detected on first load
-│ └──────────────────────────┘     │   - Or manual entry with autocomplete
-│                                  │   - Clear (✕) to change location
-│                                  │
-└──────────────────────────────────┘
-
-CSS:
-.location-input {
-  font-family: 'Crimson Pro', serif;
-  font-size: 1.1rem;
-  padding: 1rem 1.5rem;
-  border: 2px solid #8B7355;
-  border-radius: 8px;
-  background: white;
-  color: #1A2F23;
-}
-
-.location-input::placeholder {
-  color: #8B7355;
-  opacity: 0.7;
-}
-```
-
-**Location Detection Logic:**
-```javascript
-async function detectLocation() {
-  try {
-    // Try browser geolocation first
-    const position = await getCurrentPosition();
-    const location = await reverseGeocode(
-      position.coords.latitude, 
-      position.coords.longitude
-    );
-    return location; // "Santa Barbara, CA"
-  } catch (error) {
-    // Permission denied or not available
-    // Show manual entry prompt
-    return null;
-  }
-}
-```
-
-**Manual Entry:**
-- Uses Google Places Autocomplete (or similar)
-- Suggests cities, regions, landmarks
-- Handles "Santa Barbara", "Santa Barbara CA", "93101"
-- Biases results to user's general region
-
-**Empty State (Location Not Detected):**
-```
-┌──────────────────────────────────┐
-│ Birds Around You                 │
-│                                  │
-│ 👇 Where are you birding?        │
-│                                  │
-│ ┌──────────────────────────┐     │
-│ │ Enter city or region...  │     │
-│ └──────────────────────────┘     │
-│                                  │
-│ Or tap map to select location    │
-│                                  │
-│ Popular regions:                 │
-│ [California] [Texas] [Florida]   │
-│                                  │
-└──────────────────────────────────┘
-```
-
----
-
-#### 2. Map & Context
-
-```
-┌──────────────────────────────────┐
-│ ┌────────────┐  47 birds         │ ← Compact map (1/3 width)
-│ │    Map     │  in February      │   Shows selected region
-│ │            │                   │   Color intensity = density
-│ │     ◉      │  [Expand full ⤢]  │   Darker = more species
-│ │            │                   │
-│ └────────────┘                   │
-│                                  │
-│ Legend: Darker = More species    │ ← Simple legend
-└──────────────────────────────────┘
-
-CSS:
-.map-container {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 8px;
-  margin: 1rem 0;
-}
-
-.map-widget {
-  aspect-ratio: 1;
-  border: 2px solid #8B7355;
-  border-radius: 4px;
-  position: relative;
-}
-
-.bird-count {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1A2F23;
-}
-```
-
-**Map Behavior:**
-- Shows user's selected region (zoomed appropriately)
-- User location marked with ◉
-- Radius circle shown (subtle outline)
-- Color gradient overlay:
-  - Light green: 1-20 species
-  - Medium green: 21-50 species
-  - Dark green: 51+ species
-- Pan/zoom enabled
-- Tap "Expand full ⤢" → Full-screen map view
-
-**Full-Screen Map (Expanded):**
-```
-┌──────────────────────────────────┐
-│ ← Back to results                │
+│ Migration Map               [≡]  │ ← Minimal header (40px)
 ├──────────────────────────────────┤
 │                                  │
 │                                  │
-│        [Full Screen Map]         │ ← Interactive
-│                                  │   Pan anywhere
-│              ◉                   │   Zoom in/out
-│         You are here             │
+│        [INTERACTIVE MAP]         │ ← 75% of viewport
+│                                  │   Edge-to-edge, immersive
+│    ◉ You are here                │
+│                                  │   Layers (bottom→top):
+│    [5-8 animated paths]          │   1. Base map (muted)
+│    [1-3 pulsing hotspots]        │   2. Heat (all birds, subtle)
+│                                  │   3. Migration paths (bold)
+│                                  │   4. Hotspots (pulsing)
+│    Santa Barbara, CA             │   5. Your location
+│    May 2026                      │
 │                                  │
-│     Tap any region to            │
-│     explore birds there          │
+│    ▼ Peak Spring Migration       │ ← Status (bottom overlay)
+│    47 species passing through    │   Auto-generated text
+│                                  │   Semi-transparent bg
+│    Jan ━━━━━●━━━━━━━━━━━━━ Dec  │ ← Time slider (integrated)
 │                                  │
-│                                  │
-└──────────────────────────────────┘
-      Jan ━━━●━━━━━━━━━━━━ Dec     ← Time slider (sticky)
-```
-
-**When user taps different region:**
-```
-┌─────────────────────────┐
-│ Northern California     │ ← Modal overlay
-│ 83 birds in February    │
-│                         │
-│ Top 3:                  │
-│ • American Robin        │
-│ • Dark-eyed Junco       │
-│ • Red-tailed Hawk       │
-│                         │
-│ [Switch to this region] │
-│              [Cancel]   │
-└─────────────────────────┘
-```
-
----
-
-#### 3. Time & Radius Controls
-
-```
-┌──────────────────────────────────┐
-│ February ──────────────────       │ ← Time slider
-│ Jan ━━━●━━━━━━━━━━━━━━━━━ Dec   │   Defaults to current month
-│                                  │   Sticky on scroll
-│                                  │
-│ Within: [50 miles ▾]             │ ← Radius dropdown
-│                                  │   Smart default based on
-│                                  │   population density
+│    [▶ Play]         [Legend ≡]  │ ← Controls (corners)
+│                                  │   Optional interactions
 └──────────────────────────────────┘
 
-CSS:
-/* Make time controls sticky on scroll */
-.time-controls {
-  position: sticky;
-  top: 0;
-  background: #FAF7F0;
-  padding: 1rem 1.5rem;
-  z-index: 10;
-  border-bottom: 1px solid rgba(139, 115, 85, 0.2);
+Visual Details:
+- Path colors: Family-based (Shorebirds=blue, Warblers=gold, etc.)
+- Animation: Flowing particles moving along paths
+- Glow: Paths pulse with intensity based on activity
+- Hotspots: Concentric rings pulsing (Delaware Bay, etc.)
+- Opacity: Varies by month (bright=active, dim=stationary)
+```
+
+**Path Visualization:**
+```css
+/* Each migration path */
+.migration-path {
+  stroke-width: 3px;
+  stroke-dasharray: 10 5;  /* Dashed line */
+  opacity: 0.2-1.0;  /* Varies by month */
+  filter: drop-shadow(0 0 4px currentColor);  /* Glow */
+  animation: glow 2s ease-in-out infinite;
 }
 
-/* On scroll down, add subtle shadow */
-.time-controls.scrolled {
-  box-shadow: 0 2px 8px rgba(26, 47, 35, 0.08);
+/* Animated particles flowing along path */
+.path-particle {
+  r: 4px;
+  fill: currentColor;
+  opacity: 0.8;
+  /* SVG animateMotion moves along path */
+}
+
+/* Hotspot marker */
+.hotspot-marker {
+  animation: pulse 2s infinite;
+  filter: drop-shadow(0 0 8px rgba(74, 144, 226, 0.8));
 }
 ```
 
-**Time Slider:**
-- Identical to Species page implementation
-- 12 stops (one per month)
-- Current month highlighted
-- Updates results dynamically (with brief loading state)
-- Label shows full month name
+**Time Slider Behavior:**
 
-**Radius Control:**
+As user drags from January → December:
+
 ```
-Within: [50 miles ▾]
-   ↓ Click
+January (Winter):
+- Paths DIM (opacity 0.2)
+- Animation PAUSED
+- Text: "Migration quiet - birds at winter grounds"
+- Visualization: Shows clustering/concentration
+
+March (Spring Begins):
+- Paths BRIGHTEN (opacity 0.6)
+- Animation SLOW
+- Text: "Spring migration beginning"
+- Visualization: Emerging flows
+
+May (PEAK):
+- Paths MAXIMUM BRIGHT (opacity 1.0)
+- Animation FAST
+- Text: "Peak spring migration - 47 species passing"
+- Hotspots: Delaware Bay PULSING
+- Visualization: Maximum activity
+
+July (Breeding):
+- Paths DIM (opacity 0.3)
+- Animation PAUSED
+- Text: "Breeding season - birds nesting"
+- Visualization: Arctic concentration
+
+September (Fall Migration):
+- Paths BRIGHTEN (opacity 0.8)
+- Animation FAST REVERSE (southbound)
+- Text: "Fall migration - return journey"
+- Visualization: Southbound flows
+```
+
+**Interaction: Tap a Path**
+
+```
+User taps blue shorebird path
+  ↓
+Modal slides up from bottom:
+
+┌────────────────────────────────┐
+│ ──── Shorebirds                │ ← Color bar matches path
+│ Atlantic Flyway                │
+│                                │
+│ 23 species including:          │ ← Top 5 by abundance
+│ • Sanderling                   │
+│ • Dunlin                       │
+│ • Red Knot                     │
+│ • Ruddy Turnstone              │
+│ • Semipalmated Sandpiper       │
+│                                │
+│ Journey                        │
+│ From: South American coast     │ ← Route summary
+│ To: High Arctic tundra         │
+│ Distance: 5,000-10,000 km      │
+│                                │
+│ Critical Stopovers             │
+│ • Delaware Bay (May)           │ ← Listed with timing
+│ • James Bay (August)           │
+│                                │
+│ [See all 23 species →]         │ ← CTA to filtered list
+│                      [Close]   │
+└────────────────────────────────┘
+```
+
+**Interaction: Tap a Hotspot**
+
+```
+User taps pulsing Delaware Bay marker
+  ↓
+Modal with details:
+
+┌────────────────────────────────┐
+│ Delaware Bay                   │
+│ Critical Shorebird Stopover    │
+│                                │
+│ Right now (May 15):            │
+│ ~100,000 shorebirds            │
+│                                │
+│ What's happening:              │ ← Educational narrative
+│ Birds are gorging on horseshoe │
+│ crab eggs, doubling their body │
+│ weight in 2 weeks for final    │
+│ push to Arctic.                │
+│                                │
+│ Top species here:              │
+│ • Red Knot (30,000)            │ ← Abundance numbers
+│ • Sanderling (25,000)          │
+│ • Ruddy Turnstone (20,000)     │
+│                                │
+│ [Learn more] [Close]           │
+└────────────────────────────────┘
+```
+
+**Play Button:**
+
+```
+User taps [▶ Play]
+  ↓
+Auto-animates through year:
+- Slider advances Jan → Dec (30 seconds total)
+- Paths animate, hotspots pulse on cue
+- Narrative updates each month
+- Pauses briefly at peak months
+
+Controls during playback:
+[⏸ Pause] [⏮ Restart] [Speed: 2x ▾]
+```
+
+**Legend Toggle:**
+
+```
+[Legend ≡]
+  ↓ Tap
+Small overlay in corner:
+
 ┌──────────────────┐
-│ 10 miles         │
-│ 25 miles         │
-│ 50 miles      ✓  │
-│ 100 miles        │
-│ 200 miles        │
-└──────────────────┘
-```
-
-**Smart Defaults:**
-```javascript
-function getDefaultRadius(location) {
-  const density = getPopulationDensity(location);
-  
-  if (density > 5000) return 10;   // Dense urban
-  if (density > 1000) return 25;   // Urban/suburban
-  if (density > 100) return 50;    // Suburban/rural
-  if (density > 10) return 100;    // Rural
-  return 200;                      // Remote/wilderness
-}
-```
-
----
-
-#### 4. Filtering & Display Options
-
-```
-┌──────────────────────────────────┐
-│ Filter by habitat:               │ ← Optional filter
-│ ○ All  ○ Beach  ○ Forest         │   Chip-style toggles
-│ ○ Grassland  ○ Urban  ○ Wetland  │   Not pre-selected
-│                                  │
-│ 47 birds • February 2026         │ ← Results header
-│ [Grid ●] [List ○]                │   View toggle
-│ Sort: [Most common ▾]            │   Sort dropdown
-└──────────────────────────────────┘
-
-CSS:
-.filter-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 1rem 1.5rem;
-  background: rgba(45, 74, 62, 0.03);
-}
-
-.filter-chip {
-  padding: 0.5rem 1rem;
-  border: 2px solid #8B7355;
-  border-radius: 20px;
-  background: white;
-  font-family: 'Crimson Pro', serif;
-  font-size: 0.95rem;
-  color: #2D4A3E;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.filter-chip.active {
-  background: #2D4A3E;
-  color: white;
-  border-color: #2D4A3E;
-}
-```
-
-**Habitat Options:**
-- All (default - no filter)
-- Beach / Coastal
-- Forest / Woodland
-- Grassland / Prairie
-- Urban / Suburban
-- Wetland / Marsh
-
-**Sort Options:**
-```
-Sort by: [Most common ▾]
-   ↓
-┌────────────────────┐
-│ Most common     ✓  │ ← Default (uses eBird frequency data)
-│ Alphabetical       │
-│ Size (largest)     │
-│ Size (smallest)    │
-└────────────────────┘
-```
-
----
-
-#### 5. Results Display
-
-**Adaptive Default:**
-```javascript
-// Auto-select view based on result count
-const defaultView = birdCount < 30 ? 'grid' : 'list';
-```
-
-**Grid View (< 30 birds or user preference):**
-```
-┌──────────────────────────────────┐
-│ ┌─────────┐ ┌─────────┐ ┌───────┐│
-│ │  [img]  │ │  [img]  │ │ [img] ││ ← 3 columns on mobile
-│ │         │ │         │ │       ││   2 columns on narrow
-│ │ American│ │  Blue   │ │Western││   4-5 on tablet/desktop
-│ │  Robin  │ │   Jay   │ │ Gull  ││
-│ └─────────┘ └─────────┘ └───────┘│
-│                                  │
-│ ┌─────────┐ ┌─────────┐ ┌───────┐│
-│ │  [img]  │ │  [img]  │ │ [img] ││
-│ │ Common  │ │ Song    │ │Downy  ││
-│ │Yellowth.│ │Sparrow  │ │Woodp. ││
-│ └─────────┘ └─────────┘ └───────┘│
-│                                  │
-└──────────────────────────────────┘
-
-Interaction:
-- Tap card → Species page (direct navigation)
-- Gentle lift on tap (4px elevation)
-- Image lazy-loaded as scrolled into view
-```
-
-**List View (30+ birds or user preference):**
-```
-┌──────────────────────────────────┐
-│ ┌────┐                           │
-│ │img │ American Robin            │ ← Compact row (collapsed)
-│ └────┘ Common year-round         │   Tap to expand
-│ ──────────────────────────────    │
-│                                  │
-│ ┌────┐                           │
-│ │img │ Blue Jay                  │
-│ └────┘ Common resident           │
-│ ──────────────────────────────    │
-│                                  │
-│ ┌──────────────────────────────┐ │
-│ │ [Larger illustration]        │ │ ← Expanded state
-│ │                              │ │   Shows preview
-│ │ Western Gull                 │ │
-│ │                              │ │
-│ │ Large gray-backed gull       │ │ ← 1-2 sentence teaser
-│ │ common along Pacific coast.  │ │
-│ │                              │ │
-│ │ • Abundant coastal resident  │ │ ← Quick facts (2-3)
-│ │ • Often seen at beaches      │ │
-│ │ • Size: 22-26 inches         │ │
-│ │                              │ │
-│ │ [See full page →]            │ │ ← CTA to species page
-│ └──────────────────────────────┘ │
-│                                  │
-│ ┌────┐                           │
-│ │img │ Sanderling                │
-│ └────┘ Winter visitor            │
-│ ──────────────────────────────    │
-└──────────────────────────────────┘
-
-Interaction:
-- Tap collapsed row → Expands inline
-- Tap "See full page" → Species page
-- Tap elsewhere → Collapse current, expand new
-- Only one expanded at a time
-```
-
-**Pagination:**
-```
-Load first 30 birds initially
-
-Then either:
-
-Option A (Explicit):
-┌──────────────────┐
-│  [Load more →]   │ ← Button to load next 30
+│ Migration Flows  │
+│                  │
+│ ──── Shorebirds  │ ← Only active groups
+│ ──── Warblers    │   (5-8 shown)
+│ ──── Raptors     │
+│ ──── Waterfowl   │
+│                  │
+│ ◉ Hotspot (peak) │ ← Symbol key
+│ ○ Your location  │
+│                  │
+│     [Close ×]    │
 └──────────────────┘
 
-Option B (Infinite scroll):
-- Automatically load next 30 as user approaches bottom
-- Show subtle loading indicator
-- Continue until all results shown
-```
-
-**My recommendation:** Option A (explicit button) for first version. Less ambiguous, gives user control.
-
----
-
-### State Management
-
-**URL Parameters:**
-Preserve state for back navigation and shareability:
-
-```
-/explore?location=santa-barbara-ca&lat=34.4208&lng=-119.6982&month=2&radius=50&habitat=beach&view=list&sort=common
-
-Parameters:
-- location: URL-safe location name
-- lat, lng: Coordinates (for precise location)
-- month: 1-12
-- radius: 10, 25, 50, 100, 200
-- habitat: all, beach, forest, grassland, urban, wetland
-- view: grid, list
-- sort: common, alpha, size-large, size-small
-```
-
-**State Restoration:**
-```javascript
-// On page load
-const params = new URLSearchParams(window.location.search);
-const state = {
-  location: params.get('location') || await detectLocation(),
-  month: parseInt(params.get('month')) || getCurrentMonth(),
-  radius: parseInt(params.get('radius')) || getDefaultRadius(),
-  habitat: params.get('habitat') || 'all',
-  view: params.get('view') || getAdaptiveView(),
-  sort: params.get('sort') || 'common'
-};
-
-// Update URL when state changes (without page reload)
-function updateURL(newState) {
-  const params = new URLSearchParams(newState);
-  window.history.replaceState({}, '', `/explore?${params}`);
-}
-```
-
-**Benefits:**
-- ✅ Back button works (returns to exact state)
-- ✅ URLs are shareable ("Check out birds near me!")
-- ✅ Refresh preserves selections
-- ✅ Deep linking supported
-
----
-
-### Error States
-
-**No Results:**
-```
-┌──────────────────────────────────┐
-│ No birds found                   │
-│                                  │
-│ This combination of filters      │
-│ didn't match any birds.          │
-│                                  │
-│ Try:                             │
-│ • Expanding your radius          │
-│ • Adjusting the month            │
-│ • Removing habitat filter        │
-│                                  │
-│ [Show all birds in California →] │
-└──────────────────────────────────┘
-```
-
-**Location Not Found:**
-```
-┌──────────────────────────────────┐
-│ Location not recognized          │
-│                                  │
-│ Please try:                      │
-│ • A nearby city name             │
-│ • State or region                │
-│ • ZIP code                       │
-│                                  │
-│ Or tap map to select location    │
-└──────────────────────────────────┘
-```
-
-**Network Error:**
-```
-┌──────────────────────────────────┐
-│ Unable to load bird data         │
-│                                  │
-│ Please check your connection     │
-│ and try again.                   │
-│                                  │
-│ [Retry]                          │
-└──────────────────────────────────┘
+Tap any family → highlights that path
+Tap again → dehighlights
 ```
 
 ---
 
-### Performance Optimizations
+#### 2. What's Flying Through (Educational Context)
 
-**Initial Load:**
-- Detect location in background while showing UI skeleton
-- Load first 30 birds immediately
-- Lazy load images as they scroll into view
-- Defer map initialization until visible
-
-**Filtering/Sorting:**
-```javascript
-// Debounce filter changes to avoid excessive re-renders
-const debouncedFilter = useDe bounce((filters) => {
-  updateResults(filters);
-}, 300);
-
-// Optimistic UI - show loading state, update immediately
-function handleFilterChange(newFilter) {
-  setLoading(true);
-  debouncedFilter(newFilter);
-}
 ```
-
-**Virtual Scrolling:**
-If list exceeds 200 birds, implement virtual scrolling:
-- Only render visible items + buffer
-- Dramatically improves scroll performance
-- Use `react-window` or `react-virtualized`
 
 ---
 
