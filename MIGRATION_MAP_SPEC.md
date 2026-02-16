@@ -1,5 +1,5 @@
 # Migration Map - Technical Specification
-**Live Flight Paths for Bird Migration**
+**Animated Flight Paths for Bird Migration**
 
 Version 1.0 - February 2026
 
@@ -20,13 +20,18 @@ Version 1.0 - February 2026
 ## Concept Overview
 
 ### The Vision
-> "You're at the beach in May. You open Aviary. The map shows glowing migration paths of birds passing through RIGHT NOW. Sanderlings refueling at Delaware Bay. Warblers streaming north. Arctic Terns on their epic journey."
+> "You're at the beach in May. You open Aviary. The map shows glowing migration paths of birds passing through this month. Sanderlings refueling at Delaware Bay. Warblers streaming north. Arctic Terns on their pole-to-pole circuit."
 
 ### What Makes This Unique
-**Existing tools show:** Where birds are (static heat maps, range maps)  
+**Existing tools show:** Where birds are (static heat maps, range maps)
 **Aviary shows:** Where birds are GOING (animated migration flows, temporal movement)
 
 No one visualizes migration as a living, flowing system. This is the defining feature of Aviary.
+
+### Data Honesty
+The map shows what *typically* happens this month based on seasonal data from eBird Status & Trends (weekly abundance models). It is NOT real-time tracking. Frame as "Migration This Month" or "What's Flying Now" — never "Live." Birders are knowledgeable; misleading framing damages credibility instantly.
+
+**Future real-time layer:** BirdCast (Cornell Lab) publishes nightly migration forecasts using weather radar. Integrating BirdCast data (Phase 4+) would add a genuine real-time element: "Tonight, an estimated 200 million birds are in flight across the US." This makes the "live" framing honest rather than aspirational.
 
 ### Design Principles
 1. **AI does the heavy lifting** - Auto-groups, infers paths, filters to relevance
@@ -34,6 +39,7 @@ No one visualizes migration as a living, flowing system. This is the defining fe
 3. **Temporal storytelling** - Time slider brings migration to life
 4. **Graceful degradation** - Works globally, richer where data is better
 5. **Mobile-first beauty** - Smooth 60fps animations, touch-optimized
+6. **Honest about confidence** - Don't show confident-looking paths for poorly-studied species. Visible confidence markers. Honest gaps > fabricated precision.
 
 ---
 
@@ -95,6 +101,175 @@ Groups generated:
 
 ---
 
+## Migration Pattern Types
+
+Not all migration is north-south. The map must handle diverse patterns that each require different rendering logic.
+
+### Pattern Taxonomy
+
+```javascript
+const MIGRATION_PATTERNS = {
+  "latitudinal": {
+    // Classic N-S migration. Most songbirds, shorebirds, raptors.
+    // Single path geometry, reverse direction in fall.
+    rendering: "animated-path",
+    needsSeparateRoutes: false,
+    example: "Sanderling (Arctic → South America, same corridor both ways)"
+  },
+
+  "loop": {
+    // Different routes spring vs fall. Path geometry differs by season.
+    // American Golden-Plover: east over Atlantic in fall, Great Plains in spring.
+    rendering: "dual-animated-path",
+    needsSeparateRoutes: true,  // springRoute and fallRoute are distinct geometries
+    example: "American Golden-Plover, Connecticut Warbler, Swainson's Thrush"
+  },
+
+  "altitudinal": {
+    // Up/down mountains, not across continents. Short distance, big habitat change.
+    // Render as a localized path with altitude indicator.
+    rendering: "localized-path-with-altitude",
+    needsSeparateRoutes: false,
+    example: "Mountain Quail (walks downhill in winter), Clark's Nutcracker"
+  },
+
+  "longitudinal": {
+    // East-west movement, not north-south. Relatively rare.
+    rendering: "animated-path",
+    needsSeparateRoutes: false,
+    example: "Evening Grosbeak, some European species"
+  },
+
+  "austral": {
+    // Southern Hemisphere: birds fly SOUTH to breed, NORTH to winter.
+    // Same rendering as latitudinal but narrative and season labels flip.
+    rendering: "animated-path",
+    needsSeparateRoutes: false,
+    narrativeFlipped: true,  // "Spring" is September in Southern Hemisphere
+    example: "Fork-tailed Flycatcher, Chocolate-vented Tyrant"
+  },
+
+  "irruptive": {
+    // Unpredictable, driven by food supply. Some years flood south; others stay put.
+    // NOT a fixed route — render as expanding/contracting range boundary.
+    rendering: "range-pulse",
+    needsSeparateRoutes: false,
+    isUnpredictable: true,
+    example: "Snowy Owl, crossbills, Pine Siskin, Bohemian Waxwing"
+  },
+
+  "nomadic": {
+    // Wander based on rainfall/food. No fixed routes at all.
+    // Many Australian and African species. Render as a shimmering, shifting range.
+    rendering: "range-drift",
+    needsSeparateRoutes: false,
+    isUnpredictable: true,
+    example: "Banded Stilt (Australia), many African seedeaters"
+  },
+
+  "pelagic": {
+    // Seabirds that spend months/years at sea. Ranges are vast oceanic zones.
+    // Render with ocean-based paths, wave-like visual treatment.
+    rendering: "ocean-path",
+    needsSeparateRoutes: false,
+    isOceanic: true,
+    example: "Sooty Shearwater (circumnavigates Pacific), albatrosses"
+  },
+
+  "sedentary": {
+    // Non-migratory. Year-round range only.
+    // No path to render — show static range with lifecycle notes.
+    rendering: "static-range",
+    needsSeparateRoutes: false,
+    example: "Northern Cardinal, most tropical species"
+  }
+};
+```
+
+### Partial Migration
+
+Many species are partial migrants — some populations migrate while others are year-round residents. American Robin (the first showcase species!) is a textbook example.
+
+```javascript
+const MIGRATION_VARIABILITY = {
+  "obligate": {
+    // All populations migrate. Safe to show path for entire range.
+    rangeOverlap: false,
+    narrative: "All populations migrate between breeding and winter ranges."
+  },
+  "partial": {
+    // Some populations migrate, some stay year-round.
+    // Show BOTH the resident range AND the migratory path.
+    rangeOverlap: true,
+    narrative: "Northern populations migrate south in fall, while birds in
+               the mid-Atlantic and Southeast may stay year-round."
+  },
+  "facultative": {
+    // Migration depends on conditions (weather, food supply).
+    // Show range with note about variability.
+    rangeOverlap: true,
+    isConditional: true,
+    narrative: "Migration varies by year — in mild winters, many stay put."
+  }
+};
+```
+
+**Visual treatment for partial migrants:**
+- Resident portion of range: solid fill, always visible
+- Migratory portion: animated path (breeding ↔ winter), overlaid on resident range
+- Prevents a birder in Georgia from seeing a Robin migration path and thinking "that's wrong, Robins are here all year"
+
+### Irruptive Species Visualization
+
+Instead of animated paths (which imply predictable routes), irruptive species get a distinctive visualization:
+
+```
+Normal year (e.g., Snowy Owl):
+┌──────────────────────────┐
+│  [Arctic range - solid]  │  ← Small, concentrated range
+│                          │     No paths, no animation
+│  "Snowy Owls typically   │
+│   stay in the Arctic"    │
+└──────────────────────────┘
+
+Irruption year:
+┌──────────────────────────┐
+│  [Range expands south    │  ← Range boundary pulses outward
+│   with pulsing effect]   │     Like a ripple in water
+│                          │     Expanding/contracting animation
+│  "2026 is an irruption   │
+│   year — Snowy Owls are  │
+│   appearing as far south │
+│   as Virginia"           │
+└──────────────────────────┘
+```
+
+**Data source for irruptions:** eBird frequency data (updated regularly) can detect unusual range expansions. Alternatively, a manual editorial flag for confirmed irruption years. This turns a data gap into a feature birders would love.
+
+### Pelagic / Ocean Species
+
+Seabirds need different treatment than land-based migrants:
+
+- **Base map must handle oceans as more than blank space** — bathymetric shading, current patterns
+- **Paths use wave-like rendering** rather than straight land-following lines
+- **Ranges are vast oceanic zones** — not polygons but probability gradients
+- **Stopovers are breeding colonies** (islands, cliffs) rather than inland hotspots
+
+```javascript
+const PELAGIC_CONFIG = {
+  pathStyle: "wave",          // Undulating path instead of straight
+  strokeDasharray: "15 8",    // Longer dashes for ocean feel
+  particleShape: "triangle",  // Arrow/wedge shape (bird-like)
+  rangeRendering: "gradient", // Probability gradient, not hard boundary
+  baseMapLayer: "ocean",      // Show ocean depth/currents
+  stopovers: "breeding-colonies"
+};
+```
+
+Affects ~300-400 species globally. Worth deciding on before building the map renderer.
+
+---
+
 ## Data Structures
 
 ### Migration Group Schema
@@ -119,9 +294,19 @@ Groups generated:
     "Ruddy Turnstone",
     // ... up to 23
   ],
+  "migrationPattern": "latitudinal",
+  // See Migration Pattern Types section. Drives rendering strategy.
+
+  "migrationVariability": "obligate",
+  // "obligate" | "partial" | "facultative"
+  // Partial: show resident range AND migratory path simultaneously
+
   "route": {
     "type": "inferred",  // or "verified" for well-studied species
     "confidence": "high",  // high, medium, low
+    "springRoute": null,  // For loop migrants: distinct spring path geometry
+    "fallRoute": null,    // For loop migrants: distinct fall path geometry
+    // For non-loop migrants, springRoute/fallRoute are null; use points + direction
     "points": [
       {
         "lat": -35.5,
@@ -269,10 +454,12 @@ const FAMILY_COLORS = {
 ### Map Layers (Bottom to Top)
 
 ```
-1. Base Map (OpenStreetMap or Mapbox)
-   - Muted colors (grays, light blues)
-   - Simplified (no labels except major cities)
+1. Base Map (Mapbox GL JS with custom vintage style)
+   - Muted earth tones (cream land, light blue water) via Mapbox Studio
+   - Simplified (no labels except major cities and water bodies)
    - Focus on coastlines, major water bodies
+   - Ocean areas are NOT blank: subtle bathymetric shading for pelagic species
+   - Styled to match Aviary palette (cream #FAF7F0, muted greens, sepia borders)
 
 2. Heat Map Layer (All Birds - Subtle Background)
    - Opacity: 0.3
@@ -479,6 +666,25 @@ const MONTH_STATES = {
     visualization: "clustering"
   }
 };
+
+// SOUTHERN HEMISPHERE: Season labels and narratives flip.
+// When user is in the Southern Hemisphere (lat < 0), the map uses
+// month names instead of season names to avoid confusion.
+// "September migration" not "spring migration" for austral species.
+function getSeasonLabel(month, userLat) {
+  if (userLat >= 0) {
+    // Northern Hemisphere: standard labels
+    return NORTHERN_SEASON_LABELS[month];
+  }
+  // Southern Hemisphere: use month names, not season names
+  // "September" not "Spring" — avoids "spring migration" in September confusion
+  return MONTH_NAMES[month];
+}
+
+// Austral migrants (fly south to breed) have flipped path animations:
+// - Southbound in September-November (to breeding grounds)
+// - Northbound in March-May (to wintering grounds)
+// The animation direction reverses based on migrationPattern: "austral"
 
 // Smooth transitions between months
 function updateMapForMonth(month) {
@@ -718,10 +924,12 @@ vs
 }
 ```
 
-**Display strategy:**
-- **High confidence (8+):** Show path normally
-- **Medium confidence (5-7):** Show path with lighter opacity, note "inferred" in modal
-- **Low confidence (<5):** Don't show path, add to backlog for manual research
+**Display strategy (confidence must be VISIBLE, not hidden):**
+- **High confidence (8+):** Solid animated path, bold stroke. Full experience.
+- **Medium confidence (5-7):** Dashed path, slightly transparent (opacity 0.6), note "Route inferred from family patterns" in modal. Small "i" icon on path when tapped shows data source and confidence level.
+- **Low confidence (<5):** Path NOT shown on map. Species page shows text-only range description: "Migration route not well documented." Honest gaps are better than confident-looking fabrications. Added to research backlog for improvement.
+
+**Why visible confidence matters:** A smooth, confident-looking animated path for a species where the actual route is poorly understood implies precision that doesn't exist. A birder who knows the science will see this as misleading. Dashed lines and transparency communicate "we know roughly, not exactly" — which is honest and builds trust.
 
 ### Completeness Tracking
 
@@ -937,23 +1145,25 @@ Mobile (Older devices):
 
 ### Phase 1: Foundation (Weeks 1-3)
 
-**Goal:** Basic map with static paths for North America
+**Goal:** Basic map with static paths for North America, exercising diverse migration patterns
 
 **Tasks:**
-1. Set up base map (Mapbox or Leaflet + OpenStreetMap)
+1. Set up Mapbox GL JS with custom vintage-styled base map (Mapbox Studio)
 2. Implement time slider component
 3. Create 8 family color scheme
-4. Build path data structure
-5. Manually define 5-10 showcase paths (well-studied species)
-   - Sanderling (Atlantic Flyway)
-   - Arctic Tern (Global champion)
+4. Build path data structure (including loop, altitudinal, pelagic variants)
+5. Manually define 5-10 showcase paths representing diverse patterns:
+   - Sanderling (Atlantic Flyway, classic latitudinal)
+   - Arctic Tern (Global champion, pelagic)
    - Bar-tailed Godwit (Pacific record-holder)
    - Ruby-throated Hummingbird (Gulf crossing)
    - Swainson's Hawk (Americas champion)
-6. Render static SVG paths on map
+   - American Golden-Plover (loop migration — different spring/fall routes)
+6. Render SVG paths on map with confidence-based visual treatment (solid vs dashed)
 7. Basic opacity changes with slider (no animation yet)
+8. Southern Hemisphere month-name labels (no "spring/fall" for austral)
 
-**Deliverable:** Map shows paths, slider changes visibility
+**Deliverable:** Map shows paths including loop and pelagic, slider changes visibility
 
 ---
 
@@ -976,19 +1186,21 @@ Mobile (Older devices):
 
 ### Phase 3: AI Path Generation (Weeks 6-8)
 
-**Goal:** Scale from 10 paths to 100+
+**Goal:** Scale from 10 paths to 100+, with diverse migration types
 
 **Tasks:**
-1. Build Claude prompt for path inference
-2. Integrate eBird range data
-3. Define known flyway corridors
+1. Build Claude prompt for path inference (separate prompts for latitudinal, loop, altitudinal, pelagic)
+2. Integrate eBird Status & Trends range data (Tier 1 species — raster to GeoJSON pipeline)
+3. Define known flyway corridors (Atlantic, Pacific, Central, Mississippi, trans-Saharan, East Asian-Australasian)
 4. Generate paths for all North American migrants (~350 species)
-5. Review confidence scores
-6. Filter to high-confidence only (show ~100 paths)
-7. Implement grouping algorithm (reduce 100 → 8 groups)
-8. Test across different locations/months
+5. Review confidence scores — only show high/medium on map
+6. Implement confidence-based visual treatment (solid vs dashed)
+7. Implement grouping algorithm (reduce 100 → 8 groups per location)
+8. Add irruptive species visualization (range-pulse for Snowy Owl, crossbills, etc.)
+9. Add partial migration handling (resident range overlay + migratory path)
+10. Test across different locations/months/hemispheres
 
-**Deliverable:** Migration map works anywhere in North America, auto-generates relevant paths
+**Deliverable:** Migration map works anywhere in North America, handles diverse patterns, honest about confidence
 
 ---
 
@@ -1010,16 +1222,18 @@ Mobile (Older devices):
 
 ### Phase 5: Global Expansion (Weeks 11-12)
 
-**Goal:** Extend beyond North America
+**Goal:** Extend beyond North America, handle hemispheric differences
 
 **Tasks:**
 1. Generate paths for European migrants (trans-Saharan routes)
 2. Generate paths for East Asian-Australasian flyway
-3. Generate paths for Neotropical migrants
-4. Test degradation in data-sparse regions (tropics, Southern Hemisphere)
-5. Confidence thresholds by region
+3. Generate paths for Neotropical and austral migrants (Southern Hemisphere breeding patterns)
+4. Add pelagic species paths (ocean-based rendering for shearwaters, albatrosses)
+5. Test degradation in data-sparse regions (tropics, Southern Hemisphere)
+6. Confidence thresholds by region (higher bar for data-sparse regions)
+7. Southern Hemisphere season/narrative handling (month names, reversed breeding seasons)
 
-**Deliverable:** Global migration map, gracefully handles all regions
+**Deliverable:** Global migration map, handles all regions and hemispheres honestly
 
 ---
 
@@ -1088,11 +1302,13 @@ Mobile (Older devices):
 - Crowdsource path corrections from expert birders
 
 ### Additional Features (Future)
+- **BirdCast integration (high priority):** Cornell's BirdCast publishes nightly nocturnal migration forecasts from weather radar data. Overlay: "Tonight, an estimated 200 million birds are in flight across the US." This makes the temporal framing genuinely real. Most songbirds migrate at night — a fact most people don't know. A day/night toggle showing "right now, invisible above you, millions of birds are flying" is the kind of invisible-made-visible moment that aligns perfectly with Aviary's spirit.
+- **"Follow a bird" scrollytelling:** Pick one species, see its full year cycle as a scroll-driven narrative. Map pans and zooms alongside the story. "It's March. Our Sanderling — let's call her by her band number, B95 — is fattening up on a beach in Tierra del Fuego..." This is the content that gets shared and bookmarked.
 - Historical migration (compare 2020 vs 2025)
 - Climate change impacts (routes shifting over time)
-- "Follow a bird" mode (pick one species, see full year cycle)
 - Rare vagrant alerts (unusual migration patterns)
 - Educational mode for teachers (lesson plans, quizzes)
+- **Conservation spotlight on map:** Paths for declining species with subtle visual indicator. Monthly feature: "12 species passing through your area this month are declining."
 
 ### Accessibility
 - Audio descriptions of migration flows

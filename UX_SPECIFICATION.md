@@ -38,9 +38,11 @@ Version 1.0 - February 2026
 ## Landing Page (Migration Map)
 
 ### Purpose
-**Primary Goal:** Immediately show what makes Aviary unique - live bird migration visualization.
+**Primary Goal:** Immediately show what makes Aviary unique - animated bird migration visualization.
 
 **Core Experience:** User lands on the site and sees the Migration Map in full glory. The wow factor is instant. No boring landing page, no pitch - just beauty and discovery.
+
+**Honest Framing:** The map shows what *typically* happens this month based on seasonal data from eBird, not real-time tracking. Frame as "Migration This Month" or "What's Flying Now" — not "Live." Birders are knowledgeable and will notice the difference. The data is real and current-month-relevant; it's just not real-time. (Future: BirdCast integration for genuinely live nocturnal migration forecasts.)
 
 **Secondary Goals:**
 - Provide search for specific birds (below the map)
@@ -59,7 +61,11 @@ Why hide the best feature behind a traditional landing page? Lead with the uniqu
 
 ```
 ┌──────────────────────────────────┐
-│ AVIARY                      [≡]  │ ← Minimal header (40px)
+│ AVIARY                [🔍] [≡]  │ ← Minimal header (40px)
+│                                  │   Persistent search icon — tapping
+│                                  │   scrolls to search or opens overlay.
+│                                  │   Users arriving for a specific bird
+│                                  │   shouldn't have to scroll past the map.
 ├──────────────────────────────────┤
 │                                  │
 │                                  │
@@ -73,7 +79,7 @@ Why hide the best feature behind a traditional landing page? Lead with the uniqu
 │     ◉ Global view                │   - Swainson's Hawk
 │                                  │   
 │                                  │   5-8 paths maximum
-│     Live Bird Migration          │   Color-coded by family
+│     Bird Migration This Month    │   Color-coded by family
 │     Across the World             │   Animated particles flowing
 │                                  │
 │    Jan ━━━━━●━━━━━━━━━━━━━ Dec   │ ← Time slider (integrated)
@@ -200,8 +206,15 @@ CSS:
    → Updates paths to show local migrations
    → URL updates to /explore?location=...
 3. If denied:
-   → Shows manual location entry
+   → Shows manual location entry (geocoded via Nominatim, free)
    → "Enter your city or region"
+4. If sparse-data region (rural Africa, central Asia, etc.):
+   → Fall back to nearest well-covered area
+   → Note: "Showing birds near [nearest covered region]. Data coverage in your area is limited — help us improve it by contributing to eBird."
+5. If Southern Hemisphere:
+   → Season labels flip: "spring migration" in September, "fall migration" in March
+   → Or use month names instead of season names to avoid confusion
+   → Austral migration handled correctly (birds fly south to breed, north to winter)
 
 ---
 
@@ -266,6 +279,13 @@ CSS:
 - Mobile: Stack vertically
 - Desktop: Grid layout (2 columns)
 
+**Seasonal Landing Experience:**
+The entire landing page subtly shifts with the seasons:
+- **Color accent shift:** Migration map's dominant path colors change by season (spring: warm golds and greens; fall: ambers and rusts; winter: cool blues and grays)
+- **Featured content:** "This Month's Migration Highlight" — one specific species, one specific location, one specific thing happening. Hand-curated when possible, not auto-generated.
+- **Time slider default:** Always defaults to current real-world month. Never show January in July.
+- **Status overlay text:** Changes with season ("Peak spring migration" vs "Breeding season — most birds nesting" vs "Fall migration underway")
+
 ---
 
 ### User Flows
@@ -313,9 +333,111 @@ Explore local migrations
 Scroll down for full bird list
 ```
 
+**Flow 4: "What's That Bird?" Quick ID**
+```
+User sees a bird they don't recognize
+  ↓
+Taps binoculars icon (header) or "What's That Bird?" link
+  ↓
+3 quick questions (no typing required):
+  1. Size: [Sparrow] [Robin] [Crow] [Goose]  ← tap one
+  2. Color: [visual color picker — 8 common colors]
+  3. Where: [Water] [Ground] [Tree] [Sky/Flying]
+  ↓
+Results filtered by location + current month:
+  3-8 likely matches shown as cards with illustrations
+  ↓
+User taps the match → Species page
+```
+
+**Why this matters:**
+The second most common birding use case (after "tell me about [bird name]") is "I see a bird right now and don't know what it is." This doesn't require any AI or image recognition — just a filtered query against existing species data (size, color, habitat, range, season). Simple, practical, high-value.
+
+**Edge cases:**
+- **No matches**: Expand filter radius or suggest broadening criteria. "Try selecting a different size or color."
+- **Too many matches**: Show top 8 by regional frequency (most common first). "Showing most likely matches."
+- **Sparse data region**: Fall back to family-level suggestions. "We have limited data for your area."
+
+**Flow 5: Family Browsing**
+```
+User is on American Robin species page
+  ↓
+Sees family context bar below bird name:
+  "Thrushes (Turdidae) · 45 species"
+  ↓
+Taps "Thrushes" link
+  ↓
+Family page: /family/thrushes
+  Brief editorial intro about the family
+  Grid of all thrush species with illustrations
+  Filtered by region if location available
+```
+
+This creates a natural browsing path that field guide users expect. Prevents dead-end pages where users bounce after viewing one species.
+
 ---
 
 ### Desktop Adaptations
+
+#### Species Page Desktop Layout (Side-by-Side)
+
+On screens >1024px, the species page uses a fundamentally different layout:
+
+```
+┌──────────────────────────────────────────────────────┐
+│ ← Back    American Robin              [🔍] [≡]      │
+│           Thrushes (Turdidae) · 45 species           │ ← Family context bar
+├─────────────────────┬────────────────────────────────┤
+│                     │                                │
+│                     │  What Makes Them Special       │
+│  [ILLUSTRATION]     │                                │
+│                     │  These familiar songbirds...   │ ← Content scrolls
+│  Fixed at 40%       │                                │    independently
+│  width, stays       │  Look For                     │
+│  visible as         │  • Orange breast...            │
+│  content scrolls    │                                │
+│                     │  Did You Know?                 │
+│                     │  • Partial migrant...          │
+│                     │                                │
+│                     │  ♪ Sounds                      │
+│                     │  [▶ Flight Call]               │
+│                     │                                │
+│                     │  Where & When                  │
+│                     │  [Map widget]                  │
+│                     │                                │
+│                     │  Similar Birds                 │
+│                     │  [Dunlin] [Plover]             │
+│                     │                                │
+└─────────────────────┴────────────────────────────────┘
+```
+
+**Why:** The sticky illustration at 35vh on a large monitor wastes screen space. Side-by-side keeps the bird visible while giving content room to breathe. The illustration is the anchor; the content is the payload.
+
+#### Migration Map Desktop Layout (Split View)
+
+```
+┌────────────────────────────────────────────────────────────┐
+│ AVIARY                                     [🔍] [≡]       │
+├──────────────────────────────────┬─────────────────────────┤
+│                                  │                         │
+│                                  │  What's Flying Through  │
+│     [INTERACTIVE MAP]            │                         │
+│                                  │  ─── Shorebirds (23)   │
+│     [5-8 animated paths]        │  Sanderling · Dunlin    │
+│     [Pulsing hotspots]          │  Arctic → Delaware Bay  │
+│                                  │  Peak: Now through June │
+│                                  │                         │
+│     Jan ━━━━━●━━━━━━━━━ Dec    │  ─── Warblers (18)     │
+│     [▶ Play]    [Legend]        │  Yellow Warbler · ...   │
+│                                  │  Central America → N.  │
+│                                  │                         │
+│                                  │  [All birds here now →] │
+└──────────────────────────────────┴─────────────────────────┘
+```
+
+**Why:** On desktop, the map and educational content can coexist without scrolling. The right panel shows "What's Flying Through" context alongside the map, eliminating the need to scroll to learn about the paths you're seeing.
+
+---
 
 **Larger screens (>768px):**
 
@@ -329,7 +451,7 @@ Scroll down for full bird list
 │         [More paths visible]                │   Potentially 8-10 paths
 │                                             │   (vs 5-8 on mobile)
 │                                             │
-│    Live Bird Migration Across the World     │
+│    Bird Migration This Month                │
 │                                             │
 │    Jan ━━━━━━━●━━━━━━━━━━━━━━━━━━━ Dec     │
 │                                             │
@@ -504,6 +626,7 @@ Scroll down for full bird list
 │ ┌──────────────────────────┐     │  ← Name overlay (bottom)
 │ │ Sanderling               │     │     Semi-transparent bg
 │ │ Calidris alba            │     │     Elegant typography
+│ │ Sandpipers · 98 species  │     │     ← Family context (tappable link)
 │ └──────────────────────────┘     │
 │                                  │
 └──────────────────────────────────┘
@@ -1102,6 +1225,31 @@ function getSimilarBirds(currentBird, userLocation, currentMonth) {
 
 ---
 
+#### 6. Conservation Thread (Quiet, Not Alarmist)
+
+Conservation is woven through species pages as an informative presence, not a guilt trip:
+
+- **Conservation section** in facts: Only shown if species is Threatened, Endangered, or Declining. Simple, factual. "Declining — 80% population loss since 1970s. Vulnerable to beach development."
+- **Actionable links** for conservation-relevant species: Link to local Audubon chapters, habitat preservation organizations, citizen science projects. "Help: Report sightings on eBird."
+- **On species page map** (for declining migrants): Subtle visual indicator on the migration path — not a red warning, just a slightly thinner or more transparent path. If tapped, shows: "This species' migration corridor is under pressure from [specific threat]."
+- **Tone:** Informative, respectful, never alarmist. Birders care deeply about conservation — surface it tastefully to build trust and purpose.
+
+---
+
+#### 7. Print-Friendly View
+
+Birders often want to bring information into the field. The vintage aesthetic looks beautiful in print.
+
+**`@media print` stylesheet:**
+- Hides nav, footer, interactive elements (map, audio, slider)
+- Shows illustration at full resolution, centered
+- Lays out facts in clean single-column format
+- Includes scientific name, family, conservation status
+- Includes QR code linking back to the digital page
+- Fits on one page for common species, two pages for enhanced
+
+---
+
 ## Content Generation Strategy
 
 ### Overview
@@ -1222,35 +1370,75 @@ Use examples: [5 gold standard species]
 
 ---
 
-### Quality Assurance
+### Quality Assurance: The Slop Detector
 
-**Automated Checks:**
+AI-generated nature writing tends toward a specific kind of generic warmth. "These remarkable birds undertake an epic journey" is the AI equivalent of stock photography. Birders will recognize it instantly. The slop detector catches this before it ships.
+
+**Automated Checks (slop-detector.ts):**
 ```javascript
 function validateGeneratedContent(content) {
   const checks = {
-    summaryLength: content.summary.split(' ').length >= 25 
+    // Format checks
+    summaryLength: content.summary.split(' ').length >= 25
                    && content.summary.split(' ').length <= 50,
-    
     hasAllCategories: content.lookFor && content.didYouKnow,
-    
-    bulletCount: content.lookFor.length >= 2 
+    bulletCount: content.lookFor.length >= 2
                  && content.lookFor.length <= 4,
-    
-    noBannedWords: !content.text.match(/utilize|facilitate|individuals/),
-    
-    hasSpecifics: content.text.match(/\d/) // Contains numbers
+
+    // SLOP BAN LIST — AI nature-writing crutches
+    // If any of these appear, regenerate with explicit instruction to avoid them.
+    noBannedWords: !content.text.match(
+      /\b(remarkable|incredible|epic journey|fascinating|thriving|testament to|nature's|feathered friend|avian|winged|majestic|awe-inspiring|breathtaking|stunning display|truly unique|remarkable feat|incredible journey|marvel of nature)\b/i
+    ),
+
+    // SPECIFICITY CHECK — every summary must contain at least one
+    // specific number AND one named location. "Migrates long distances" fails.
+    // "Flies 11,000 km from Alaska to New Zealand" passes.
+    hasSpecificNumber: /\d/.test(content.text),
+    hasNamedLocation: /[A-Z][a-z]+\s+(Bay|River|Coast|Arctic|Pacific|Atlantic|Gulf|Mountains?|Island|Ocean|Lake|Peninsula|Valley|Desert|Forest|Tundra|Prairie|Strait)/.test(content.text)
+      || /\b(Alaska|Florida|Delaware|California|Arctic|Antarctic|Amazon|Sahara|Patagonia|Siberia)\b/.test(content.text),
+
+    // UNIQUENESS CHECK — flag if >30% word overlap with any previously
+    // generated summary in the same batch. AI tends to produce
+    // structurally identical outputs.
+    // (Implemented via embedding similarity in batch pipeline)
+
+    // THE "SO WHAT" TEST (manual flag) — each "Did You Know" bullet
+    // should make someone want to tell a friend.
+    // "Is a migratory bird" → FAILS
+    // "Can sleep with one eye open while flying over the ocean" → PASSES
   };
-  
+
   return Object.values(checks).every(check => check === true);
 }
+```
+
+**Anti-Examples in the Prompt:**
+Include 3-5 examples of *bad* outputs in the generation prompt (with explanations of why they're bad). Anti-examples are more effective than examples for preventing slop.
+
+```
+BAD (too generic): "The American Robin is a remarkable bird that can be
+found across North America. These fascinating creatures are truly a
+testament to nature's beauty."
+WHY BAD: "remarkable," "fascinating," "testament to nature's beauty" are
+filler. No specific detail. Could describe any bird.
+
+GOOD (specific, memorable): "American Robins famously signal spring across
+the northern US, but many never leave — partial migrants, some Georgia
+populations skip the flight entirely. They can eat 14 feet of earthworms
+in a single day."
+WHY GOOD: Specific fact (14 feet), named location (Georgia), surprising
+detail (partial migration), not interchangeable with another species.
 ```
 
 **Manual Review Checklist:**
 - [ ] Facts are accurate (cross-check with eBird/Wikipedia)
 - [ ] Tone is warm but not anthropomorphic
 - [ ] No jargon or unexplained technical terms
-- [ ] Interesting and memorable (not generic)
+- [ ] Interesting and memorable (not generic) — would you tell a friend?
 - [ ] Appropriate length (not too verbose)
+- [ ] Contains at least one fact-checkable claim (a birder could verify it)
+- [ ] Not interchangeable — could this summary only describe THIS species?
 
 ---
 
@@ -1422,7 +1610,7 @@ With Landing and Species pages defined, this document continues with:
 ### Purpose
 **Primary Goal:** Visualize bird migration as a living, flowing system.
 
-**Core Question Answered:** "What birds are moving through the world RIGHT NOW?"
+**Core Question Answered:** "What birds are moving through this part of the world this month?"
 
 **Secondary Goals:**
 - Show migration as temporal patterns (not just static ranges)
@@ -1930,39 +2118,27 @@ want to support it, share your birding story below.
 - Pro: Full control, privacy-friendly, aligned with project ethos
 - Con: More work, need spam protection
 
-**Recommendation:** Option B (custom) using Supabase:
+**Recommendation: Defer or use Utterances (GitHub Issues-backed)**
+
+A custom Supabase comments system contradicts the core architecture of "no backend to maintain" and introduces a Supabase project, database tables, spam moderation burden (real even for small sites), and a new failure mode.
+
+**For initial launch:** Use **utterances** (https://utteranc.es). Free, no backend, spam handled by GitHub authentication, aligned with open-source spirit. Requires commenters to have GitHub accounts, which limits participation — but the About page comments section is a nice-to-have, not a core feature.
+
+**Alternative:** Defer comments entirely. The About page is beautiful without them. Add community features only if/when there's genuine demand.
+
+**If community engagement grows (Phase 4+):** Migrate to a custom system with Supabase at that point, when the moderation burden is justified by actual engagement.
+
 ```javascript
-// Comment submission
-async function submitComment(text, name = 'Anonymous') {
-  await supabase.from('comments').insert({
-    page: 'about',
-    text: text,
-    name: name,
-    approved: false,  // Requires manual approval
-    created_at: new Date()
-  });
-}
-
-// Display approved comments
-const { data: comments } = await supabase
-  .from('comments')
-  .select('*')
-  .eq('page', 'about')
-  .eq('approved', true)
-  .order('created_at', { ascending: false });
+// utterances integration (About page only)
+// Just a script tag — no backend, no database, no moderation burden
+<script src="https://utteranc.es/client.js"
+  repo="[your-github-repo]"
+  issue-term="about-page"
+  theme="github-light"
+  crossorigin="anonymous"
+  async>
+</script>
 ```
-
-**Spam Protection:**
-- Require manual approval before showing
-- Simple honeypot field (hidden from real users)
-- Rate limiting (max 1 comment per IP per hour)
-- No links allowed in comments (or require approval)
-
-**Moderation:**
-- Simple admin page to approve/reject
-- Email notification on new comment
-- Flag inappropriate content
-- Can ban IP if needed
 
 ---
 
